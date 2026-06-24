@@ -1,7 +1,7 @@
 const DB = {
   get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
   set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
-  getWallets() { return this.get('df_wallets') || { bni: 0, cash: 0, spay: 0 }; },
+  getWallets() { const w = this.get('df_wallets'); if (!Object.keys(w || {}).length) return { }; return w || { }; },
   getSettings() { return this.get('df_settings') || { targetBNI: 0, dailyLimit: 25000, workDaysLeft: 22, totalWorkdays: 22, name: '' }; },
   getObligations() { return this.get('df_obligations') || []; },
   getTransactions() { return this.get('df_transactions') || []; },
@@ -268,10 +268,13 @@ function renderOnboardingModal() {
   const el = document.getElementById('onboardingModal');
   if (!el) return;
   const container = el.querySelector('.modal-body');
-  const rows = Object.keys(wallets).map(k => {
+  
+  // Only show wallets that have been customized (have metadata)
+  const customizedWallets = Object.keys(wallets).filter(k => meta[k] && meta[k].name);
+  const rows = customizedWallets.map(k => {
     const m = meta[k] || {};
     return `
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
         <input class="form-input onboard-wallet-name" data-wallet="${k}" value="${(m.name||k).replace(/"/g,'')}">
         <input class="form-input amount-input onboard-wallet-balance" data-wallet="${k}" value="${Number(wallets[k]||0).toLocaleString('id-ID')}">
         <input class="form-input onboard-wallet-syn" data-wallet="${k}" placeholder="Sinonim, koma-separasi" value="${m.synonyms? (Array.isArray(m.synonyms)? m.synonyms.join(',') : m.synonyms) : ''}">
@@ -279,12 +282,45 @@ function renderOnboardingModal() {
   }).join('');
 
   container.innerHTML = `
-    <div style="padding-bottom:8px">Masukkan nama yang ingin ditampilkan dan saldo awal. Anda bisa menambahkan sinonim untuk memudahkan pencatatan lewat chat (pisahkan dengan koma).</div>
-    <div style="margin-bottom:8px"><input id="onboardName" class="form-input" placeholder="Nama Anda" value="${settings.name || ''}"></div>
-    <div style="max-height:240px;overflow:auto">${rows}</div>
+    <div style="padding-bottom:12px"><b>Selamat datang di MyWallet!</b><br/>Masukkan nama Anda dan atur dompet yang ingin dikelola.</div>
+    <div style="margin-bottom:12px"><input id="onboardName" class="form-input" placeholder="Nama Anda (cth: Budi, Siti)" value="${settings.name || ''}"></div>
+    ${rows ? `<div style="margin-bottom:8px;font-size:12px;color:var(--text-secondary)">Dompet yang dikustomisasi:</div>` : ''}
+    <div style="max-height:240px;overflow-auto;margin-bottom:12px">${rows || '<div style="font-size:13px;color:var(--text-muted);padding:12px;text-align:center">Belum ada dompet. Buat dompet pertama Anda di bawah.</div>'}</div>
+    <div style="margin-bottom:8px;font-size:12px;color:var(--text-secondary)">Tambah Dompet Baru:</div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      <input id="newWalletName" class="form-input" placeholder="Nama dompet (cth: BNI, Dana)" style="flex:1;min-width:120px">
+      <input id="newWalletBalance" class="form-input amount-input" placeholder="Saldo awal" value="0" style="flex:0.8;min-width:80px">
+      <button id="onboardAddWallet" class="btn-secondary" style="padding:8px 12px;font-size:12px;white-space:nowrap">+ Tambah</button>
+    </div>
     <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end"><button class="btn-secondary" id="onboardingSkipBtn">Lewati</button><button class="btn-primary" id="onboardingSaveBtn">Simpan</button></div>
   `;
+  
   container.querySelectorAll('.amount-input').forEach(inp => inp.addEventListener('input', () => formatInputRp(inp)));
+  
+  const addWalletBtn = container.querySelector('#onboardAddWallet');
+  if (addWalletBtn) {
+    addWalletBtn.addEventListener('click', () => {
+      const nameInput = container.querySelector('#newWalletName');
+      const balanceInput = container.querySelector('#newWalletBalance');
+      const name = (nameInput?.value || '').trim();
+      if (!name) { toast('Masukkan nama dompet', 'error'); return; }
+      
+      const key = slugify(name);
+      const w = DB.getWallets();
+      const m = DB.getWalletMeta();
+      if (w[key]) { toast('Dompet sudah ada', 'warning'); return; }
+      
+      w[key] = parseRpInput(balanceInput?.value || '0');
+      m[key] = { name: name, type: 'wallet', synonyms: [] };
+      DB.saveWallets(w);
+      DB.saveWalletMeta(m);
+      nameInput.value = '';
+      balanceInput.value = '0';
+      renderOnboardingModal();
+      toast('Dompet ditambahkan', 'success');
+    });
+  }
+  
   const saveBtn = container.querySelector('#onboardingSaveBtn');
   const skipBtn = container.querySelector('#onboardingSkipBtn');
   if (saveBtn) saveBtn.addEventListener('click', handleOnboardSave);
@@ -293,7 +329,12 @@ function renderOnboardingModal() {
 
 function showOnboardingIfNeeded() {
   const s = DB.getSettings();
-  if (!s || !s.name) {
+  const wallets = DB.getWallets();
+  const meta = DB.getWalletMeta();
+  const walletKeys = Object.keys(wallets).filter(k => wallets[k] !== 0 || meta[k]?.name);
+  // Show onboarding if: no name OR no custom wallet metadata
+  const needsOnboarding = !s || !s.name || walletKeys.length === 0;
+  if (needsOnboarding) {
     renderOnboardingModal();
     showModal('onboardingModal');
   }
@@ -582,6 +623,8 @@ function checkBudgetAlert(category, amount) {
 
 /* Chat parsing to extract amounts and map to wallet keys using wallet metadata */
 let pendingChatTxs = [];
+let chatSelectedDate = null;
+let chatSelectedDate = null;
 
 function guessCategoryFromText(text) {
   if (!text) return '';
@@ -603,6 +646,7 @@ function parseChatToTransactions(text) {
   const parts = cleaned.replace(/[.,]/g, ' ').split(/\s+/).filter(Boolean);
   const wallets = DB.getWallets();
   const meta = DB.getWalletMeta();
+  const selectedDate = chatSelectedDate || todayDateStr();
 
   const findWalletKey = token => {
     if (!token) return null;
@@ -636,6 +680,11 @@ function parseChatToTransactions(text) {
 
   for (let i = 0; i < parts.length; i++) {
     let p = parts[i];
+    // skip standalone dates (1-31) unless 'k' suffix or > 1000
+    if (/^\d{1,2}$/.test(p)) {
+      const num = parseInt(p);
+      if (num <= 31 && !parts[i].endsWith('k') && parts[i + 1] !== 'k') continue; // likely a date
+    }
     p = p.replace(/^rp/, '').replace(/^rps?/, '');
     const m = p.match(/^(\d+(?:[\.,]\d+)?)(k?)$/);
     if (m) {
@@ -697,7 +746,7 @@ function applyIntent(intent) {
   const wallets = DB.getWallets();
   const txs = DB.getTransactions();
   const meta = DB.getWalletMeta();
-  const date = todayDateStr();
+  const date = intent.date || todayDateStr();
 
   if (intent.type === 'expense') {
     const src = intent.sourceWallet;
@@ -832,7 +881,8 @@ function handleChatInput() {
   // apply immediate ones
   if (toApply.length) {
     toApply.forEach(a => {
-      const res = applyIntent(a);
+      const aWithDate = Object.assign({}, a, { date: chatSelectedDate || todayDateStr() });
+      const res = applyIntent(aWithDate);
       if (!res.ok) appendChatLog(`Gagal menyimpan: ${res.msg}`, 'bot');
       else {
         if (a.type === 'transfer') appendChatLog(`Dicatat transfer: ${formatRp(a.amount)}`, 'bot');
@@ -843,12 +893,15 @@ function handleChatInput() {
   }
 
   if (toConfirm.length) {
-    toConfirm.forEach(it => pendingChatTxs.push({ id: DB.generateId(), intent: it }));
+    toConfirm.forEach(it => pendingChatTxs.push({ id: DB.generateId(), intent: Object.assign({}, it, { date: chatSelectedDate || todayDateStr() }) }));
     appendChatLog('Beberapa transaksi perlu konfirmasi. Silakan periksa dan tekan "Simpan" jika benar.', 'bot');
     renderPendingChatUI();
   }
 
   input.value = '';
+  chatSelectedDate = null;
+  const dateInput = document.getElementById('chatDate');
+  if (dateInput) dateInput.value = '';
 }
 
 function openEditModal(id) {
@@ -1304,37 +1357,22 @@ function deleteTemplate(id) {
 
 /* AI INSIGHT */
 async function callAI(prompt, data) {
-  const apiKey = localStorage.getItem('df_ai_key');
-  if (!apiKey) { toast('Set API Key dulu di halaman AI Insight', 'error'); return null; }
-
-  const systemPrompt = `Kamu adalah AI financial advisor untuk aplikasi MyWallet. Analisis data keuangan pribadi pengguna dalam bahasa Indonesia.
-ATURAN:
-1. Gunakan HTML murni: <h3>, <p>, <ul><li>, <ol><li>, <b>
-2. Jangan gunakan Markdown (**, *, #)
-3. Jadilah spesifik dengan angka dari data yang diberikan
-4. Nada: profesional tapi personal, seperti teman yang ahli keuangan
-5. Fokus pada insight yang actionable dan konkret`;
+  const gasUrl = localStorage.getItem('df_gas_url');
+  if (!gasUrl) { toast('Set Google Apps Script URL di halaman AI Insight', 'error'); return null; }
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(gasUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: `DATA KEUANGAN:\n${JSON.stringify(data, null, 2)}\n\nPERTANYAAN: ${prompt}` }]
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'ai_insight', prompt, data })
     });
 
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || 'API Error');
-    }
+    if (!res.ok) throw new Error('Request gagal: ' + res.statusText);
 
     const json = await res.json();
-    return json.content?.[0]?.text || 'Tidak ada respons';
+    return json.result || 'Tidak ada respons dari AI';
   } catch (e) {
+    toast('Error: ' + e.message, 'error');
     throw e;
   }
 }
@@ -1627,6 +1665,7 @@ function initApp() {
   });
 
   document.getElementById('mobileMenuBtn')?.addEventListener('click', openSidebar);
+  document.getElementById('notifBtn')?.addEventListener('click', openSidebar);
   document.getElementById('themeToggleSidebar').addEventListener('click', toggleTheme);
   document.getElementById('themeToggleTop').addEventListener('click', toggleTheme);
 
@@ -1655,12 +1694,24 @@ function initApp() {
     document.getElementById('chatToggle').style.display = 'none';
     document.getElementById('chatInput').focus();
   });
-  document.getElementById('chatToggle')?.addEventListener('click', () => {
-    const box = document.getElementById('chatBox');
-    box.style.display = box.style.display === 'none' || !box.style.display ? '' : 'none';
-  });
+
   document.getElementById('chatSend')?.addEventListener('click', () => handleChatInput());
   document.getElementById('chatInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleChatInput(); });
+  document.getElementById('chatClose')?.addEventListener('click', () => { document.getElementById('chatBox').style.display = 'none'; document.getElementById('chatToggle').style.display = ''; });
+  document.getElementById('chatToggle')?.addEventListener('click', () => {
+    const box = document.getElementById('chatBox');
+    const toggle = document.getElementById('chatToggle');
+    if (box.style.display === 'none' || !box.style.display) { box.style.display = 'flex'; toggle.style.display = 'none'; document.getElementById('chatInput').focus(); }
+  });
+  document.getElementById('chatDateBtn')?.addEventListener('click', () => {
+    const dateInput = document.getElementById('chatDate');
+    chatSelectedDate = dateInput.value || todayDateStr();
+    appendChatLog(`Tanggal transaksi: ${new Date(chatSelectedDate + 'T00:00:00').toLocaleDateString('id-ID')}`, 'bot');
+  });
+  document.getElementById('chatDate')?.addEventListener('change', () => {
+    const btn = document.getElementById('chatDateBtn');
+    if (btn) btn.click();
+  });
 
   // wallet settings handlers
   document.getElementById('addWalletBtn')?.addEventListener('click', () => addWalletFromForm());
@@ -1873,14 +1924,16 @@ function initApp() {
   });
 
   document.getElementById('saveApiKey').addEventListener('click', () => {
-    const key = document.getElementById('aiApiKey').value.trim();
-    if (!key) { toast('Masukkan API Key', 'error'); return; }
-    localStorage.setItem('df_ai_key', key);
-    toast('API Key disimpan', 'success');
+    const url = document.getElementById('aiApiKey').value.trim();
+    if (!url) { toast('Masukkan Google Apps Script URL', 'error'); return; }
+    if (!url.startsWith('https://script.google.com')) { toast('URL harus berasal dari Google Apps Script', 'warning'); }
+    localStorage.setItem('df_gas_url', url);
+    toast('GAS URL disimpan', 'success');
   });
 
-  document.getElementById('toggleApiKey').addEventListener('click', () => {
+  document.getElementById('toggleApiKey')?.addEventListener('click', () => {
     const input = document.getElementById('aiApiKey');
+    if (!input || input.type !== 'password') return;
     const icon = document.querySelector('#toggleApiKey i');
     if (input.type === 'password') { input.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; }
     else { input.type = 'password'; icon.className = 'fa-solid fa-eye'; }
