@@ -2,7 +2,7 @@ const DB = {
   get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
   set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
   getWallets() { const w = this.get('df_wallets'); if (!Object.keys(w || {}).length) return { }; return w || { }; },
-  getSettings() { return this.get('df_settings') || { targetBNI: 0, dailyLimit: 25000, workDaysLeft: 22, totalWorkdays: 22, name: '' }; },
+  getSettings() { return this.get('df_settings') || { targetBNI: 0, dailyLimit: 0, workDaysLeft: 0, totalWorkdays: 0, name: '' }; },
   getObligations() { return this.get('df_obligations') || []; },
   getTransactions() { return this.get('df_transactions') || []; },
   getBudgets() { return this.get('df_budgets') || {}; },
@@ -398,7 +398,7 @@ function renderDonut(w, total) {
   const data = keys.map(k => Number(w[k] || 0));
   const labels = keys.map(k => (meta[k] && meta[k].name) ? meta[k].name : (k === 'cash' ? 'Cash' : k.toUpperCase()));
   const hasData = data.some(v => v > 0);
-  const colorPool = ['rgba(43,110,246,0.85)','rgba(16,185,129,0.85)','rgba(255,209,102,0.85)','rgba(139,92,246,0.85)','rgba(251,113,133,0.85)'];
+  const colorPool = ['rgba(43,110,246,0.85)','rgba(16,185,129,0.85)','rgba(2f,209,102,0.85)','rgba(139,92,246,0.85)','rgba(251,113,133,0.85)'];
   const bg = hasData ? keys.map((_, i) => colorPool[i % colorPool.length]) : keys.map(() => 'rgba(255,255,255,0.05)');
   if (walletDonutChart) walletDonutChart.destroy();
   walletDonutChart = new Chart(ctx, {
@@ -1331,7 +1331,7 @@ function deleteTemplate(id) {
 }
 
 async function callAI(prompt, data) {
-  const gasUrl = localStorage.getItem('df_gas_url');
+  const gasUrl = localStorage.getItem('df_gas_url') || 'https://script.google.com/macros/s/AKfycbwEmqCzLn4s09pW0lvqlWnU1sJP3iMJJ5Q-Xk8JuX0Uddy21wG-LHpm6L2G2y9z4Gac/exec';
   if (!gasUrl) { toast('Set Google Apps Script URL di halaman AI Insight', 'error'); return null; }
 
   try {
@@ -1349,6 +1349,42 @@ async function callAI(prompt, data) {
     toast('Error: ' + e.message, 'error');
     throw e;
   }
+}
+
+function navigateTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+
+  const titles = {
+    dashboard: 'Dashboard', transactions: 'Catat Transaksi',
+    history: 'Riwayat', settings: 'Pengaturan',
+    calendar: 'Kalender', budget: 'Budget', cicilan: 'Kalkulator Cicilan', ai: 'AI Insight'
+  };
+  document.getElementById('pageTitle').textContent = titles[page] || '';
+
+  document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === page);
+  });
+
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'history') { populateMonthFilter(); populateCatFilter(); renderHistory(); }
+  if (page === 'settings') renderSettings();
+  if (page === 'transactions') {
+    document.getElementById('txDate').value = todayDateStr();
+    setTxType('expense', 'page');
+    document.querySelectorAll('.type-tab:not([data-context="modal"])').forEach(b => b.classList.toggle('active', b.dataset.type === 'expense'));
+    renderQuickTemplateBar();
+    populateWalletSelects();
+  }
+  if (page === 'calendar') { selectedCalDay = todayDateStr(); renderCalendar(); }
+  if (page === 'budget') renderBudgetPage();
+  if (page === 'ai') {
+    const savedKey = localStorage.getItem('df_gas_url') || 'https://script.google.com/macros/s/AKfycbwEmqCzLn4s09pW0lvqlWnU1sJP3iMJJ5Q-Xk8JuX0Uddy21wG-LHpm6L2G2y9z4Gac/exec';
+    if (savedKey) document.getElementById('aiApiKey').value = savedKey;
+  }
+
+  closeSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function buildAIData() {
@@ -1508,42 +1544,6 @@ function importData(file) {
   reader.readAsText(file);
 }
 
-function navigateTo(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${page}`).classList.add('active');
-
-  const titles = {
-    dashboard: 'Dashboard', transactions: 'Catat Transaksi',
-    history: 'Riwayat', settings: 'Pengaturan',
-    calendar: 'Kalender', budget: 'Budget', cicilan: 'Kalkulator Cicilan', ai: 'AI Insight'
-  };
-  document.getElementById('pageTitle').textContent = titles[page] || '';
-
-  document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.page === page);
-  });
-
-  if (page === 'dashboard') renderDashboard();
-  if (page === 'history') { populateMonthFilter(); populateCatFilter(); renderHistory(); }
-  if (page === 'settings') renderSettings();
-  if (page === 'transactions') {
-    document.getElementById('txDate').value = todayDateStr();
-    setTxType('expense', 'page');
-    document.querySelectorAll('.type-tab:not([data-context="modal"])').forEach(b => b.classList.toggle('active', b.dataset.type === 'expense'));
-    renderQuickTemplateBar();
-    populateWalletSelects();
-  }
-  if (page === 'calendar') { selectedCalDay = todayDateStr(); renderCalendar(); }
-  if (page === 'budget') renderBudgetPage();
-  if (page === 'ai') {
-    const savedKey = localStorage.getItem('df_gas_url');
-    if (savedKey) document.getElementById('aiApiKey').value = savedKey;
-  }
-
-  closeSidebar();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
 function initTheme() {
   const saved = localStorage.getItem('df_theme') || 'dark';
   document.documentElement.setAttribute('data-theme', saved);
@@ -1592,9 +1592,25 @@ function initPWA() {
     pwaPrompt = e;
     const dismissed = localStorage.getItem('df_pwa_dismissed');
     if (!dismissed) document.getElementById('pwa-install-bar').style.display = 'flex';
+    
+    const btn = document.getElementById('settingsInstallBtn');
+    if (btn) {
+      btn.style.display = 'inline-flex';
+      document.getElementById('settingsInstalledText').style.display = 'none';
+    }
   });
 
-  document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+  window.addEventListener('appinstalled', () => {
+    pwaPrompt = null;
+    document.getElementById('pwa-install-bar').style.display = 'none';
+    const btn = document.getElementById('settingsInstallBtn');
+    if (btn) {
+      btn.style.display = 'none';
+      document.getElementById('settingsInstalledText').style.display = 'block';
+    }
+  });
+
+  document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
     if (!pwaPrompt) return;
     pwaPrompt.prompt();
     const { outcome } = await pwaPrompt.userChoice;
@@ -1605,7 +1621,17 @@ function initPWA() {
     pwaPrompt = null;
   });
 
-  document.getElementById('pwa-dismiss-btn').addEventListener('click', () => {
+  document.getElementById('settingsInstallBtn')?.addEventListener('click', async () => {
+    if (!pwaPrompt) return;
+    pwaPrompt.prompt();
+    const { outcome } = await pwaPrompt.userChoice;
+    if (outcome === 'accepted') {
+      toast('MyWallet berhasil diinstall!', 'success');
+    }
+    pwaPrompt = null;
+  });
+
+  document.getElementById('pwa-dismiss-btn')?.addEventListener('click', () => {
     document.getElementById('pwa-install-bar').style.display = 'none';
     localStorage.setItem('df_pwa_dismissed', '1');
   });
@@ -1614,6 +1640,14 @@ function initPWA() {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     });
+  }
+
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    const btn = document.getElementById('settingsInstallBtn');
+    if (btn) {
+      btn.style.display = 'none';
+      document.getElementById('settingsInstalledText').style.display = 'block';
+    }
   }
 }
 
@@ -1962,7 +1996,7 @@ function initApp() {
     showConfirm('Mulai Bulan Baru', 'Ini akan mereset status kewajiban dan sisa hari kerja. Lanjutkan?', () => {
       const obs = DB.getObligations().map(o => ({ ...o, isPaid: false }));
       const s = DB.getSettings();
-      s.workDaysLeft = s.totalWorkdays || 22;
+      s.workDaysLeft = s.totalWorkdays || 0;
       DB.saveObligations(obs);
       DB.saveSettings(s);
       renderSettings();
