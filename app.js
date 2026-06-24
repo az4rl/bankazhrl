@@ -278,7 +278,7 @@ function renderOnboardingModal() {
 
   container.innerHTML = `
     <div style="padding-bottom:12px"><b>Selamat datang di MyWallet!</b><br/>Masukkan nama Anda dan atur dompet yang ingin dikelola.</div>
-    <div style="margin-bottom:12px"><input id="onboardName" class="form-input" placeholder="Nama Anda (cth: Budi, Siti)" value="${settings.name || ''}"></div>
+    <div style="margin-bottom:12px"><input id="onboardName" class="form-input" placeholder="Nama Anda" value="${settings.name || ''}"></div>
     ${rows ? `<div style="margin-bottom:8px;font-size:12px;color:var(--text-secondary)">Dompet yang dikustomisasi:</div>` : ''}
     <div style="max-height:240px;overflow-auto;margin-bottom:12px">${rows || '<div style="font-size:13px;color:var(--text-muted);padding:12px;text-align:center">Belum ada dompet. Buat dompet pertama Anda di bawah.</div>'}</div>
     <div style="margin-bottom:8px;font-size:12px;color:var(--text-secondary)">Tambah Dompet Baru:</div>
