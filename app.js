@@ -113,9 +113,7 @@ function computeDuitFree() {
   const meta = DB.getWalletMeta();
   const s = DB.getSettings();
   const obs = DB.getObligations();
-  // total balance = sum of all wallets
   const totalDana = Object.values(w).reduce((a, v) => a + (Number(v) || 0), 0);
-  // available funds: exclude locked targets defined per-wallet in meta
   let available = 0;
   Object.keys(w).forEach(k => {
     const bal = Number(w[k] || 0);
@@ -171,7 +169,6 @@ function renderDashboard() {
     document.getElementById('notifDot').style.display = 'none';
   }
 
-  // render dynamic wallets
   const wg = document.getElementById('walletsGrid');
   const wallets = Object.keys(w);
   wg.innerHTML = wallets.map(key => {
@@ -243,7 +240,6 @@ function renderDashboard() {
   if (nameEl && s.name) nameEl.textContent = `Hai, ${s.name} 👋`;
   else if (nameEl) nameEl.textContent = 'Selamat Datang 👋';
 
-  // ensure wallet selects are populated
   populateWalletSelects();
 }
 
@@ -269,7 +265,6 @@ function renderOnboardingModal() {
   if (!el) return;
   const container = el.querySelector('.modal-body');
   
-  // Only show wallets that have been customized (have metadata)
   const customizedWallets = Object.keys(wallets).filter(k => meta[k] && meta[k].name);
   const rows = customizedWallets.map(k => {
     const m = meta[k] || {};
@@ -332,7 +327,6 @@ function showOnboardingIfNeeded() {
   const wallets = DB.getWallets();
   const meta = DB.getWalletMeta();
   const walletKeys = Object.keys(wallets).filter(k => wallets[k] !== 0 || meta[k]?.name);
-  // Show onboarding if: no name OR no custom wallet metadata
   const needsOnboarding = !s || !s.name || walletKeys.length === 0;
   if (needsOnboarding) {
     renderOnboardingModal();
@@ -480,7 +474,6 @@ function renderWalletSettings() {
     `;
   }).join('');
 
-  // bind events
   list.querySelectorAll('.wallet-delete-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       const key = btn.dataset.wallet;
@@ -621,9 +614,7 @@ function checkBudgetAlert(category, amount) {
   else if (pct >= 80) setTimeout(() => toast(`Budget ${category} tersisa ${Math.round(100 - pct)}%`, 'warning'), 600);
 }
 
-/* Chat parsing to extract amounts and map to wallet keys using wallet metadata */
 let pendingChatTxs = [];
-let chatSelectedDate = null;
 let chatSelectedDate = null;
 
 function guessCategoryFromText(text) {
@@ -641,7 +632,6 @@ function guessCategoryFromText(text) {
 }
 
 function parseChatToTransactions(text) {
-  // returns array of intents: { type, amount, sourceWallet, destWallet, category, confidence }
   const cleaned = (text || '').toLowerCase();
   const parts = cleaned.replace(/[.,]/g, ' ').split(/\s+/).filter(Boolean);
   const wallets = DB.getWallets();
@@ -680,30 +670,26 @@ function parseChatToTransactions(text) {
 
   for (let i = 0; i < parts.length; i++) {
     let p = parts[i];
-    // skip standalone dates (1-31) unless 'k' suffix or > 1000
     if (/^\d{1,2}$/.test(p)) {
       const num = parseInt(p);
-      if (num <= 31 && !parts[i].endsWith('k') && parts[i + 1] !== 'k') continue; // likely a date
+      if (num <= 31 && !parts[i].endsWith('k') && parts[i + 1] !== 'k') continue;
     }
     p = p.replace(/^rp/, '').replace(/^rps?/, '');
     const m = p.match(/^(\d+(?:[\.,]\d+)?)(k?)$/);
     if (m) {
       let num = parseFloat(m[1].replace(',', '.')) || 0;
       if (m[2] === 'k') num = num * 1000;
-      // find nearby wallet tokens and verbs
       let nearbyWallets = [];
       for (let j = Math.max(0, i - 4); j <= Math.min(parts.length - 1, i + 4); j++) {
         const w = findWalletKey(parts[j]);
         if (w && !nearbyWallets.includes(w)) nearbyWallets.push(w);
       }
-      // determine if transfer pattern (dari X ke Y)
       let src = null, dst = null;
       const windowText = parts.slice(Math.max(0, i - 6), Math.min(parts.length, i + 7)).join(' ');
       const hasTransferVerb = transferWords.some(v => windowText.includes(v));
       const dariIdx = windowText.indexOf('dari');
       const keIdx = windowText.indexOf(' ke ');
       if (dariIdx !== -1 && keIdx !== -1) {
-        // simple split
         const afterDari = windowText.slice(dariIdx + 4, keIdx).trim().split(/\s+/)[0];
         const afterKe = windowText.slice(keIdx + 3).trim().split(/\s+/)[0];
         src = findWalletKey(afterDari) || null;
@@ -713,10 +699,8 @@ function parseChatToTransactions(text) {
         src = nearbyWallets[0]; dst = nearbyWallets[1];
       }
 
-      // fallback wallets
       const firstWallet = nearbyWallets[0] || null;
 
-      // determine intent type
       let type = 'expense';
       if (incomeWords.some(w => cleaned.includes(w))) type = 'income';
       if (hasTransferVerb || (src && dst)) type = 'transfer';
@@ -788,7 +772,6 @@ function applyIntent(intent) {
 function renderPendingChatUI() {
   const el = document.getElementById('chatLog');
   if (!el) return;
-  // remove prior pending containers
   el.querySelectorAll('.pending-chat-container').forEach(c => c.remove());
   if (!pendingChatTxs.length) return;
   const container = document.createElement('div');
@@ -824,12 +807,10 @@ function confirmPendingChat(pid) {
   const res = applyIntent(item.intent);
   if (!res.ok) {
     appendChatLog(`Gagal menyimpan: ${res.msg}`, 'bot');
-    // remove pending to avoid loop
     pendingChatTxs.splice(idx, 1);
     renderPendingChatUI();
     return;
   }
-  // success
   if (item.intent.type === 'transfer') appendChatLog(`Dicatat transfer: ${formatRp(item.intent.amount)} dari ${res.labelSrc} → ${res.labelDst}`, 'bot');
   else appendChatLog(`Dicatat: ${item.intent.type === 'income' ? '+' : '-'}${formatRp(item.intent.amount)} ${item.intent.type === 'income' ? 'ke' : 'dari'} ${res.label || ''}`, 'bot');
   pendingChatTxs.splice(idx, 1);
@@ -878,7 +859,6 @@ function handleChatInput() {
     }
   });
 
-  // apply immediate ones
   if (toApply.length) {
     toApply.forEach(a => {
       const aWithDate = Object.assign({}, a, { date: chatSelectedDate || todayDateStr() });
@@ -1005,7 +985,6 @@ function formatMonthLabel(ym) {
   return `${months[parseInt(m) - 1]} ${y}`;
 }
 
-/* CALENDAR */
 let calendarDate = new Date();
 let selectedCalDay = null;
 
@@ -1089,7 +1068,6 @@ function showCalDayDetail(dateStr, dayTxs) {
   });
 }
 
-/* BUDGET */
 function renderBudgetPage() {
   const budgets = DB.getBudgets();
   const txs = DB.getTransactions();
@@ -1172,7 +1150,6 @@ function renderBudgetChart(budgets, monthTxs) {
   });
 }
 
-/* CICILAN */
 let cicilanData = null;
 
 function hitungCicilan() {
@@ -1266,7 +1243,6 @@ function renderCicilanChart(rows) {
   });
 }
 
-/* QUICK TEMPLATES */
 function renderQuickTemplateBar() {
   const templates = DB.getTemplates();
   const el = document.getElementById('quickTemplateBar');
@@ -1291,7 +1267,6 @@ function applyTemplate(id) {
 
   document.getElementById('txAmount').value = tpl.amount.toLocaleString('id-ID');
   document.getElementById('txDate').value = todayDateStr();
-  // map wallet key to existing wallet, falling back to first available
   const wallets = DB.getWallets();
   const walletKeys = Object.keys(wallets);
   document.getElementById('txSourceWallet').value = walletKeys.includes(tpl.wallet) ? tpl.wallet : (walletKeys[0] || 'cash');
@@ -1355,7 +1330,6 @@ function deleteTemplate(id) {
   toast('Template dihapus', 'success');
 }
 
-/* AI INSIGHT */
 async function callAI(prompt, data) {
   const gasUrl = localStorage.getItem('df_gas_url');
   if (!gasUrl) { toast('Set Google Apps Script URL di halaman AI Insight', 'error'); return null; }
@@ -1461,15 +1435,10 @@ async function runAIInsight(promptKey, customPrompt) {
   }
 }
 
-/* SETTINGS */
 function renderSettings() {
-  const w = DB.getWallets();
   const s = DB.getSettings();
   const obs = DB.getObligations();
 
-  document.getElementById('settingBni').value = w.bni ? w.bni.toLocaleString('id-ID') : '';
-  document.getElementById('settingCash').value = w.cash ? w.cash.toLocaleString('id-ID') : '';
-  document.getElementById('settingSpay').value = w.spay ? w.spay.toLocaleString('id-ID') : '';
   document.getElementById('settingTargetBni').value = s.targetBNI ? s.targetBNI.toLocaleString('id-ID') : '';
   document.getElementById('settingDailyLimit').value = s.dailyLimit ? s.dailyLimit.toLocaleString('id-ID') : '';
   document.getElementById('settingWorkdays').value = s.workDaysLeft ?? '';
@@ -1567,7 +1536,7 @@ function navigateTo(page) {
   if (page === 'calendar') { selectedCalDay = todayDateStr(); renderCalendar(); }
   if (page === 'budget') renderBudgetPage();
   if (page === 'ai') {
-    const savedKey = localStorage.getItem('df_ai_key');
+    const savedKey = localStorage.getItem('df_gas_url');
     if (savedKey) document.getElementById('aiApiKey').value = savedKey;
   }
 
@@ -1615,7 +1584,6 @@ function closeSidebar() {
   if (overlay) overlay.classList.remove('open');
 }
 
-/* PWA */
 let pwaPrompt = null;
 
 function initPWA() {
@@ -1688,7 +1656,6 @@ function initApp() {
     showModal('templateModal');
   });
 
-  // chat widget handlers
   document.getElementById('openChatBtn')?.addEventListener('click', () => {
     document.getElementById('chatBox').style.display = '';
     document.getElementById('chatToggle').style.display = 'none';
@@ -1713,7 +1680,6 @@ function initApp() {
     if (btn) btn.click();
   });
 
-  // wallet settings handlers
   document.getElementById('addWalletBtn')?.addEventListener('click', () => addWalletFromForm());
   document.getElementById('newWalletBalance')?.addEventListener('input', (e) => formatInputRp(e.target));
   renderWalletSettings();
