@@ -7,6 +7,8 @@ const DB = {
   getTransactions() { return this.get('df_transactions') || []; },
   getBudgets() { return this.get('df_budgets') || {}; },
   getTemplates() { return this.get('df_templates') || []; },
+  getWalletMeta() { return this.get('df_wallet_meta') || {}; },
+  saveWalletMeta(v) { this.set('df_wallet_meta', v); },
   saveWallets(v) { this.set('df_wallets', v); },
   saveSettings(v) { this.set('df_settings', v); },
   saveObligations(v) { this.set('df_obligations', v); },
@@ -108,12 +110,25 @@ let cicilanChart = null;
 
 function computeDuitFree() {
   const w = DB.getWallets();
+  const meta = DB.getWalletMeta();
   const s = DB.getSettings();
   const obs = DB.getObligations();
-  const totalDana = (w.cash + w.spay) + Math.max(0, w.bni - s.targetBNI);
+  // total balance = sum of all wallets
+  const totalDana = Object.values(w).reduce((a, v) => a + (Number(v) || 0), 0);
+  // available funds: exclude locked targets defined per-wallet in meta
+  let available = 0;
+  Object.keys(w).forEach(k => {
+    const bal = Number(w[k] || 0);
+    const m = meta[k] || {};
+    if (m.type === 'bank' && Number(m.target)) {
+      available += Math.max(0, bal - Number(m.target));
+    } else {
+      available += bal;
+    }
+  });
   const unpaidObs = obs.filter(o => !o.isPaid).reduce((a, o) => a + o.amount, 0);
   const totalKewajiban = (s.workDaysLeft * s.dailyLimit) + unpaidObs;
-  const duitFree = totalDana - totalKewajiban;
+  const duitFree = available - totalKewajiban;
   return { totalDana, totalKewajiban, duitFree, unpaidObs };
 }
 
@@ -139,7 +154,7 @@ function renderDashboard() {
   const s = DB.getSettings();
   const obs = DB.getObligations();
   const txs = DB.getTransactions();
-  const totalBalance = w.bni + w.cash + w.spay;
+  const totalBalance = Object.values(w).reduce((a, v) => a + (Number(v) || 0), 0);
   const { duitFree, unpaidObs } = computeDuitFree();
 
   document.getElementById('totalBalanceAmount').textContent = formatRp(totalBalance);
@@ -156,10 +171,25 @@ function renderDashboard() {
     document.getElementById('notifDot').style.display = 'none';
   }
 
-  document.getElementById('walletBniAmount').textContent = formatRp(w.bni);
-  document.getElementById('walletCashAmount').textContent = formatRp(w.cash);
-  document.getElementById('walletSpayAmount').textContent = formatRp(w.spay);
-  document.getElementById('walletBniLocked').textContent = 'Target: ' + formatRp(s.targetBNI, true);
+  // render dynamic wallets
+  const wg = document.getElementById('walletsGrid');
+  const wallets = Object.keys(w);
+  wg.innerHTML = wallets.map(key => {
+    const name = (key === 'cash') ? 'Cash' : (key === 'spay' ? 'ShopeePay' : key.toUpperCase());
+    return `
+      <div class="wallet-card" data-wallet="${key}">
+        <div class="wallet-header">
+          <div class="wallet-icon ${key}"><i class="fa-solid fa-wallet"></i></div>
+          <span class="wallet-name">${name}</span>
+        </div>
+        <div class="wallet-amount" data-amount-id="${key}">${formatRp(w[key])}</div>
+        <div class="wallet-locked">
+          <i class="fa-solid fa-lock"></i>
+          <span data-locked-id="${key}">Target: ${formatRp(s.targetBNI, true)}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
 
   document.getElementById('workdaysLeftDisplay').textContent = s.workDaysLeft;
   document.getElementById('dailyLimitDisplay').textContent = formatRp(s.dailyLimit);
@@ -212,6 +242,90 @@ function renderDashboard() {
   const nameEl = document.querySelector('.welcome-heading');
   if (nameEl && s.name) nameEl.textContent = `Hai, ${s.name} 👋`;
   else if (nameEl) nameEl.textContent = 'Selamat Datang 👋';
+
+  // ensure wallet selects are populated
+  populateWalletSelects();
+}
+
+function populateWalletSelects() {
+  const wallets = DB.getWallets();
+  const meta = DB.getWalletMeta();
+  const keys = Object.keys(wallets);
+  const optionHtml = keys.map(k => `<option value="${k}">${(meta[k] && meta[k].name) ? meta[k].name : (k === 'cash' ? 'Cash' : k.toUpperCase())}</option>`).join('');
+  ['txSourceWallet','txDestWallet','modalTxSourceWallet','modalTxDestWallet','editTxWallet','filterWallet'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const prev = el.value;
+    el.innerHTML = (id === 'filterWallet' ? '<option value="">Semua Dompet</option>' : '') + optionHtml;
+    if (prev && [...el.options].some(o => o.value === prev)) el.value = prev;
+  });
+}
+
+function renderOnboardingModal() {
+  const settings = DB.getSettings();
+  const wallets = DB.getWallets();
+  const meta = DB.getWalletMeta();
+  const el = document.getElementById('onboardingModal');
+  if (!el) return;
+  const container = el.querySelector('.modal-body');
+  const rows = Object.keys(wallets).map(k => {
+    const m = meta[k] || {};
+    return `
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <input class="form-input onboard-wallet-name" data-wallet="${k}" value="${(m.name||k).replace(/"/g,'')}">
+        <input class="form-input amount-input onboard-wallet-balance" data-wallet="${k}" value="${Number(wallets[k]||0).toLocaleString('id-ID')}">
+        <input class="form-input onboard-wallet-syn" data-wallet="${k}" placeholder="Sinonim, koma-separasi" value="${m.synonyms? (Array.isArray(m.synonyms)? m.synonyms.join(',') : m.synonyms) : ''}">
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div style="padding-bottom:8px">Masukkan nama yang ingin ditampilkan dan saldo awal. Anda bisa menambahkan sinonim untuk memudahkan pencatatan lewat chat (pisahkan dengan koma).</div>
+    <div style="margin-bottom:8px"><input id="onboardName" class="form-input" placeholder="Nama Anda" value="${settings.name || ''}"></div>
+    <div style="max-height:240px;overflow:auto">${rows}</div>
+    <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end"><button class="btn-secondary" id="onboardingSkipBtn">Lewati</button><button class="btn-primary" id="onboardingSaveBtn">Simpan</button></div>
+  `;
+  container.querySelectorAll('.amount-input').forEach(inp => inp.addEventListener('input', () => formatInputRp(inp)));
+  const saveBtn = container.querySelector('#onboardingSaveBtn');
+  const skipBtn = container.querySelector('#onboardingSkipBtn');
+  if (saveBtn) saveBtn.addEventListener('click', handleOnboardSave);
+  if (skipBtn) skipBtn.addEventListener('click', () => { DB.saveSettings(Object.assign({}, DB.getSettings(), { _onboarded: 1 })); hideModal('onboardingModal'); });
+}
+
+function showOnboardingIfNeeded() {
+  const s = DB.getSettings();
+  if (!s || !s.name) {
+    renderOnboardingModal();
+    showModal('onboardingModal');
+  }
+}
+
+function handleOnboardSave() {
+  const name = (document.getElementById('onboardName')?.value || '').trim();
+  const wallets = DB.getWallets();
+  const meta = DB.getWalletMeta();
+  document.querySelectorAll('.onboard-wallet-name').forEach(inp => {
+    const key = inp.dataset.wallet;
+    const val = inp.value.trim();
+    if (!meta[key]) meta[key] = {};
+    meta[key].name = val || key;
+  });
+  document.querySelectorAll('.onboard-wallet-balance').forEach(inp => {
+    const key = inp.dataset.wallet;
+    wallets[key] = parseRpInput(inp.value);
+  });
+  document.querySelectorAll('.onboard-wallet-syn').forEach(inp => {
+    const key = inp.dataset.wallet;
+    const v = inp.value.trim();
+    meta[key] = meta[key] || {};
+    meta[key].synonyms = v ? v.split(',').map(s => s.trim()).filter(Boolean) : [];
+  });
+  DB.saveWallets(wallets);
+  DB.saveWalletMeta(meta);
+  DB.saveSettings(Object.assign({}, DB.getSettings(), { name: name || DB.getSettings().name || '', _onboarded: 1 }));
+  hideModal('onboardingModal');
+  renderWalletSettings();
+  renderDashboard();
+  toast('Onboarding selesai', 'success');
 }
 
 function renderDashboardBudgetBars() {
@@ -244,35 +358,32 @@ function renderDashboardBudgetBars() {
 
 function renderDonut(w, total) {
   const ctx = document.getElementById('walletDonutChart').getContext('2d');
-  const data = [w.bni || 0, w.cash || 0, w.spay || 0];
+  const meta = DB.getWalletMeta();
+  const keys = Object.keys(w);
+  const data = keys.map(k => Number(w[k] || 0));
+  const labels = keys.map(k => (meta[k] && meta[k].name) ? meta[k].name : (k === 'cash' ? 'Cash' : k.toUpperCase()));
   const hasData = data.some(v => v > 0);
+  const colorPool = ['rgba(43,110,246,0.85)','rgba(16,185,129,0.85)','rgba(255,209,102,0.85)','rgba(139,92,246,0.85)','rgba(251,113,133,0.85)'];
+  const bg = hasData ? keys.map((_, i) => colorPool[i % colorPool.length]) : keys.map(() => 'rgba(255,255,255,0.05)');
   if (walletDonutChart) walletDonutChart.destroy();
   walletDonutChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['BNI', 'Cash', 'ShopeePay'],
-      datasets: [{
-        data: hasData ? data : [1, 1, 1],
-        backgroundColor: hasData
-          ? ['rgba(59,130,246,0.85)', 'rgba(16,185,129,0.85)', 'rgba(249,115,22,0.85)']
-          : ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.05)', 'rgba(255,255,255,0.05)'],
-        borderWidth: 0, hoverOffset: 4
-      }]
+      labels,
+      datasets: [{ data: hasData ? data : keys.map(() => 1), backgroundColor: bg, borderWidth: 0, hoverOffset: 4 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: '70%',
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${formatRp(ctx.raw)}` } }
-      }
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${formatRp(ctx.raw)}` } } }
     }
   });
 }
 
 function renderTxItem(t) {
   const catIcon = CAT_ICONS[t.category] || 'fa-solid fa-circle-dot';
-  const walletLabel = { bni: 'BNI', cash: 'Cash', spay: 'ShopeePay' }[t.sourceWallet] || t.sourceWallet;
-  const destLabel = { bni: 'BNI', cash: 'Cash', spay: 'ShopeePay' }[t.destWallet] || '';
+  const meta = DB.getWalletMeta();
+  const walletLabel = (meta[t.sourceWallet] && meta[t.sourceWallet].name) ? meta[t.sourceWallet].name : t.sourceWallet || '';
+  const destLabel = (meta[t.destWallet] && meta[t.destWallet].name) ? meta[t.destWallet].name : (t.destWallet || '');
   const amountStr = t.type === 'expense' ? '-' + formatRp(t.amount) : t.type === 'income' ? '+' + formatRp(t.amount) : '→ ' + formatRp(t.amount);
   const sub = t.note ? t.note : (t.type === 'transfer' ? `${walletLabel} → ${destLabel}` : walletLabel);
   return `
@@ -295,6 +406,81 @@ function toggleObligation(id) {
   DB.saveObligations(obs);
   renderDashboard();
   toast(ob.isPaid ? `${ob.name} ditandai lunas` : `${ob.name} dibatalkan`, ob.isPaid ? 'success' : 'info');
+}
+
+function slugify(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'wallet_' + Date.now().toString(36);
+}
+
+function renderWalletSettings() {
+  const wallets = DB.getWallets();
+  const meta = DB.getWalletMeta();
+  const list = document.getElementById('walletsSettingsList');
+  if (!list) return;
+  const keys = Object.keys(wallets);
+  if (!keys.length) { list.innerHTML = '<div class="empty-state">Belum ada dompet. Tambah dompet baru di bawah.</div>'; return; }
+  list.innerHTML = keys.map(k => {
+    const m = meta[k] || {};
+    const name = m.name || (k === 'cash' ? 'Cash' : k.toUpperCase());
+    const type = m.type || 'cash';
+    const target = m.target ? m.target : '';
+    return `
+      <div class="wallet-settings-row" data-wallet="${k}" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <input class="form-input wallet-name-input" data-wallet="${k}" value="${name}" />
+        <select class="form-input wallet-type-select" data-wallet="${k}">
+          <option value="bank" ${type==='bank'?'selected':''}>Bank</option>
+          <option value="cash" ${type==='cash'?'selected':''}>Cash</option>
+          <option value="ewallet" ${type==='ewallet'?'selected':''}>E-Wallet</option>
+        </select>
+        <input class="form-input amount-input wallet-balance-input" data-wallet="${k}" value="${Number(wallets[k]||0).toLocaleString('id-ID')}" />
+        <input class="form-input wallet-target-input" data-wallet="${k}" placeholder="Target (opsional)" value="${target ? Number(target).toLocaleString('id-ID') : ''}" />
+        <button class="btn-secondary btn-sm wallet-delete-btn" data-wallet="${k}">Hapus</button>
+      </div>
+    `;
+  }).join('');
+
+  // bind events
+  list.querySelectorAll('.wallet-delete-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const key = btn.dataset.wallet;
+      showConfirm('Hapus Dompet', `Hapus dompet "${key}"? Transaksi terkait tidak akan diubah.`, () => deleteWallet(key));
+    });
+  });
+  list.querySelectorAll('.amount-input').forEach(inp => inp.addEventListener('input', () => formatInputRp(inp)));
+}
+
+function deleteWallet(key) {
+  const wallets = DB.getWallets();
+  const meta = DB.getWalletMeta();
+  delete wallets[key];
+  delete meta[key];
+  DB.saveWallets(wallets);
+  DB.saveWalletMeta(meta);
+  renderWalletSettings();
+  renderDashboard();
+  toast('Dompet dihapus', 'info');
+}
+
+function addWalletFromForm() {
+  const nameEl = document.getElementById('newWalletName');
+  const typeEl = document.getElementById('newWalletType');
+  const balEl = document.getElementById('newWalletBalance');
+  const name = nameEl.value.trim();
+  if (!name) { toast('Masukkan nama dompet', 'error'); return; }
+  const key = slugify(name);
+  const wallets = DB.getWallets();
+  if (wallets[key] !== undefined) { toast('Dompet sudah ada, gunakan nama lain', 'warning'); return; }
+  const balance = parseRpInput(balEl.value);
+  wallets[key] = balance;
+  const meta = DB.getWalletMeta();
+  meta[key] = { name, type: typeEl.value, target: 0 };
+  DB.saveWallets(wallets);
+  DB.saveWalletMeta(meta);
+  nameEl.value = '';
+  balEl.value = '';
+  renderWalletSettings();
+  renderDashboard();
+  toast(`Dompet "${name}" ditambahkan`, 'success');
 }
 
 let currentTxType = 'expense';
@@ -358,16 +544,16 @@ function submitTransaction(type, dateId, amountId, srcWalletId, destWalletId, no
   const txs = DB.getTransactions();
 
   if (type === 'expense') {
-    if (wallets[sourceWallet] < amount) { toast('Saldo tidak mencukupi', 'warning'); return false; }
+    if ((wallets[sourceWallet] || 0) < amount) { toast('Saldo tidak mencukupi', 'warning'); return false; }
     wallets[sourceWallet] -= amount;
   } else if (type === 'income') {
-    wallets[sourceWallet] += amount;
+    wallets[sourceWallet] = (wallets[sourceWallet] || 0) + amount;
   } else if (type === 'transfer') {
     const destWallet = document.getElementById(destWalletId).value;
     if (sourceWallet === destWallet) { toast('Dompet asal dan tujuan tidak boleh sama', 'error'); return false; }
-    if (wallets[sourceWallet] < amount) { toast('Saldo tidak mencukupi', 'warning'); return false; }
+    if ((wallets[sourceWallet] || 0) < amount) { toast('Saldo tidak mencukupi', 'warning'); return false; }
     wallets[sourceWallet] -= amount;
-    wallets[destWallet] += amount;
+    wallets[destWallet] = (wallets[destWallet] || 0) + amount;
     txs.push({ id: DB.generateId(), type, amount, sourceWallet, destWallet, category: 'transfer', note, date });
     DB.saveWallets(wallets);
     DB.saveTransactions(txs);
@@ -392,6 +578,277 @@ function checkBudgetAlert(category, amount) {
   const pct = (spent / limit) * 100;
   if (pct >= 100) setTimeout(() => toast(`Budget ${category} sudah habis! (${formatRp(spent, true)}/${formatRp(limit, true)})`, 'error'), 600);
   else if (pct >= 80) setTimeout(() => toast(`Budget ${category} tersisa ${Math.round(100 - pct)}%`, 'warning'), 600);
+}
+
+/* Chat parsing to extract amounts and map to wallet keys using wallet metadata */
+let pendingChatTxs = [];
+
+function guessCategoryFromText(text) {
+  if (!text) return '';
+  const t = text.toLowerCase();
+  for (const c of CATEGORIES.expense) {
+    if ((c.label || '').toLowerCase() && t.includes(c.label.toLowerCase())) return c.id;
+    if ((c.id || '') && t.includes(c.id.toLowerCase())) return c.id;
+  }
+  for (const c of CATEGORIES.income) {
+    if ((c.label || '').toLowerCase() && t.includes(c.label.toLowerCase())) return c.id;
+    if ((c.id || '') && t.includes(c.id.toLowerCase())) return c.id;
+  }
+  return '';
+}
+
+function parseChatToTransactions(text) {
+  // returns array of intents: { type, amount, sourceWallet, destWallet, category, confidence }
+  const cleaned = (text || '').toLowerCase();
+  const parts = cleaned.replace(/[.,]/g, ' ').split(/\s+/).filter(Boolean);
+  const wallets = DB.getWallets();
+  const meta = DB.getWalletMeta();
+
+  const findWalletKey = token => {
+    if (!token) return null;
+    const keyToken = token.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!keyToken) return null;
+    if (wallets[keyToken] !== undefined) return keyToken;
+    for (const k of Object.keys(meta)) {
+      const m = meta[k] || {};
+      const name = (m.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (name && name.includes(keyToken)) return k;
+      if (m.synonyms) {
+        const syns = Array.isArray(m.synonyms) ? m.synonyms : String(m.synonyms).split(',').map(s => s.trim());
+        for (const s of syns) {
+          if (!s) continue;
+          const ss = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (ss && (ss === keyToken || ss.includes(keyToken) || keyToken.includes(ss))) return k;
+        }
+      }
+    }
+    if (['cash', 'tunai'].includes(keyToken)) return Object.keys(wallets).find(k => k === 'cash') || null;
+    if (keyToken.includes('shopee') || keyToken.includes('spay')) return Object.keys(wallets).find(k => k.includes('spay')) || null;
+    if (keyToken.includes('bni') || keyToken.includes('bank')) return Object.keys(wallets).find(k => k.includes('bni')) || null;
+    return null;
+  };
+
+  const incomeWords = ['terima','dapat','masuk','menerima','gaji','gajian','bonus','diterima','penerimaan','nambah','tambah'];
+  const transferWords = ['transfer','kirim','pindah','pindahkan','topup','top up','isi'];
+  const expenseWords = ['habis','pakai','bayar','beli','belanja','keluar','tarik','pakai','bayar'];
+
+  const intents = [];
+
+  for (let i = 0; i < parts.length; i++) {
+    let p = parts[i];
+    p = p.replace(/^rp/, '').replace(/^rps?/, '');
+    const m = p.match(/^(\d+(?:[\.,]\d+)?)(k?)$/);
+    if (m) {
+      let num = parseFloat(m[1].replace(',', '.')) || 0;
+      if (m[2] === 'k') num = num * 1000;
+      // find nearby wallet tokens and verbs
+      let nearbyWallets = [];
+      for (let j = Math.max(0, i - 4); j <= Math.min(parts.length - 1, i + 4); j++) {
+        const w = findWalletKey(parts[j]);
+        if (w && !nearbyWallets.includes(w)) nearbyWallets.push(w);
+      }
+      // determine if transfer pattern (dari X ke Y)
+      let src = null, dst = null;
+      const windowText = parts.slice(Math.max(0, i - 6), Math.min(parts.length, i + 7)).join(' ');
+      const hasTransferVerb = transferWords.some(v => windowText.includes(v));
+      const dariIdx = windowText.indexOf('dari');
+      const keIdx = windowText.indexOf(' ke ');
+      if (dariIdx !== -1 && keIdx !== -1) {
+        // simple split
+        const afterDari = windowText.slice(dariIdx + 4, keIdx).trim().split(/\s+/)[0];
+        const afterKe = windowText.slice(keIdx + 3).trim().split(/\s+/)[0];
+        src = findWalletKey(afterDari) || null;
+        dst = findWalletKey(afterKe) || null;
+      }
+      if (!src && !dst && nearbyWallets.length >= 2 && hasTransferVerb) {
+        src = nearbyWallets[0]; dst = nearbyWallets[1];
+      }
+
+      // fallback wallets
+      const firstWallet = nearbyWallets[0] || null;
+
+      // determine intent type
+      let type = 'expense';
+      if (incomeWords.some(w => cleaned.includes(w))) type = 'income';
+      if (hasTransferVerb || (src && dst)) type = 'transfer';
+
+      const category = guessCategoryFromText(cleaned) || (type === 'income' ? 'gaji' : 'lainnya');
+
+      const confidence = ((type === 'transfer' && src && dst) || ((type !== 'transfer') && firstWallet)) ? 'high' : 'low';
+
+      intents.push({ type, amount: Math.round(num), sourceWallet: type === 'income' ? null : (src || firstWallet), destWallet: type === 'transfer' ? (dst || (nearbyWallets[1] || null)) : null, category, confidence });
+    }
+  }
+
+  return intents;
+}
+
+function appendChatLog(msg, who = 'user') {
+  const el = document.getElementById('chatLog');
+  if (!el) return;
+  const wrapper = document.createElement('div');
+  wrapper.style.marginBottom = '6px';
+  wrapper.innerHTML = `<div style="font-size:12px;color:${who==='user'? 'var(--text-primary)':'var(--text-secondary)'}">${msg}</div>`;
+  el.appendChild(wrapper);
+  el.scrollTop = el.scrollHeight;
+}
+
+function applyIntent(intent) {
+  const wallets = DB.getWallets();
+  const txs = DB.getTransactions();
+  const meta = DB.getWalletMeta();
+  const date = todayDateStr();
+
+  if (intent.type === 'expense') {
+    const src = intent.sourceWallet;
+    if (!src) return { ok: false, msg: 'Dompet sumber tidak ditemukan' };
+    if ((wallets[src] || 0) < intent.amount) return { ok: false, msg: 'Saldo tidak mencukupi' };
+    wallets[src] -= intent.amount;
+    txs.push({ id: DB.generateId(), type: 'expense', amount: intent.amount, sourceWallet: src, destWallet: null, category: intent.category || 'lainnya', note: 'Dicatat via chat', date });
+    DB.saveWallets(wallets);
+    DB.saveTransactions(txs);
+    return { ok: true, label: (meta[src] && meta[src].name) ? meta[src].name : src };
+  }
+
+  if (intent.type === 'income') {
+    const dest = intent.destWallet || intent.sourceWallet;
+    if (!dest) return { ok: false, msg: 'Dompet tujuan tidak ditemukan' };
+    wallets[dest] = (wallets[dest] || 0) + intent.amount;
+    txs.push({ id: DB.generateId(), type: 'income', amount: intent.amount, sourceWallet: dest, destWallet: null, category: intent.category || 'gaji', note: 'Dicatat via chat', date });
+    DB.saveWallets(wallets);
+    DB.saveTransactions(txs);
+    return { ok: true, label: (meta[dest] && meta[dest].name) ? meta[dest].name : dest };
+  }
+
+  if (intent.type === 'transfer') {
+    const src = intent.sourceWallet;
+    const dst = intent.destWallet;
+    if (!src || !dst) return { ok: false, msg: 'Dompet asal/tujuan tidak lengkap' };
+    if ((wallets[src] || 0) < intent.amount) return { ok: false, msg: 'Saldo tidak mencukupi di dompet asal' };
+    wallets[src] -= intent.amount;
+    wallets[dst] = (wallets[dst] || 0) + intent.amount;
+    txs.push({ id: DB.generateId(), type: 'transfer', amount: intent.amount, sourceWallet: src, destWallet: dst, category: 'transfer', note: 'Dicatat via chat', date });
+    DB.saveWallets(wallets);
+    DB.saveTransactions(txs);
+    return { ok: true, labelSrc: (meta[src] && meta[src].name) ? meta[src].name : src, labelDst: (meta[dst] && meta[dst].name) ? meta[dst].name : dst };
+  }
+
+  return { ok: false, msg: 'Tipe intent tidak dikenali' };
+}
+
+function renderPendingChatUI() {
+  const el = document.getElementById('chatLog');
+  if (!el) return;
+  // remove prior pending containers
+  el.querySelectorAll('.pending-chat-container').forEach(c => c.remove());
+  if (!pendingChatTxs.length) return;
+  const container = document.createElement('div');
+  container.className = 'pending-chat-container';
+  container.style.padding = '8px';
+  container.style.border = '1px solid var(--border)';
+  container.style.background = 'var(--bg-card)';
+  container.style.borderRadius = '8px';
+  container.style.marginTop = '6px';
+
+  const meta = DB.getWalletMeta();
+
+  let inner = '<div style="font-size:13px;font-weight:600;margin-bottom:8px">Periksa transaksi berikut sebelum disimpan:</div>';
+  inner += '<div style="display:flex;flex-direction:column;gap:8px">';
+  pendingChatTxs.forEach(p => {
+    const it = p.intent;
+    let desc = '';
+    if (it.type === 'expense') desc = `Pengeluaran ${formatRp(it.amount)} dari ${((meta[it.sourceWallet] && meta[it.sourceWallet].name) || it.sourceWallet)}`;
+    else if (it.type === 'income') desc = `Pemasukan ${formatRp(it.amount)} ke ${((meta[it.destWallet] && meta[it.destWallet].name) || it.destWallet || it.sourceWallet)}`;
+    else if (it.type === 'transfer') desc = `Transfer ${formatRp(it.amount)} dari ${((meta[it.sourceWallet] && meta[it.sourceWallet].name) || it.sourceWallet)} → ${((meta[it.destWallet] && meta[it.destWallet].name) || it.destWallet)}`;
+    inner += `<div style="display:flex;gap:8px;align-items:center;justify-content:space-between"><div style="font-size:13px">${desc}</div><div><button class="btn-primary btn-sm" data-pid="${p.id}" onclick="confirmPendingChat('${p.id}')">Simpan</button> <button class="btn-secondary btn-sm" data-pid="${p.id}" onclick="ignorePendingChat('${p.id}')">Lewati</button></div></div>`;
+  });
+  inner += '</div>';
+  container.innerHTML = inner;
+  el.appendChild(container);
+  el.scrollTop = el.scrollHeight;
+}
+
+function confirmPendingChat(pid) {
+  const idx = pendingChatTxs.findIndex(p => p.id === pid);
+  if (idx === -1) return;
+  const item = pendingChatTxs[idx];
+  const res = applyIntent(item.intent);
+  if (!res.ok) {
+    appendChatLog(`Gagal menyimpan: ${res.msg}`, 'bot');
+    // remove pending to avoid loop
+    pendingChatTxs.splice(idx, 1);
+    renderPendingChatUI();
+    return;
+  }
+  // success
+  if (item.intent.type === 'transfer') appendChatLog(`Dicatat transfer: ${formatRp(item.intent.amount)} dari ${res.labelSrc} → ${res.labelDst}`, 'bot');
+  else appendChatLog(`Dicatat: ${item.intent.type === 'income' ? '+' : '-'}${formatRp(item.intent.amount)} ${item.intent.type === 'income' ? 'ke' : 'dari'} ${res.label || ''}`, 'bot');
+  pendingChatTxs.splice(idx, 1);
+  renderPendingChatUI();
+  renderDashboard();
+}
+
+function ignorePendingChat(pid) {
+  const idx = pendingChatTxs.findIndex(p => p.id === pid);
+  if (idx === -1) return;
+  const item = pendingChatTxs[idx];
+  appendChatLog(`Diabaikan: ${item.intent.type} ${formatRp(item.intent.amount)}`, 'bot');
+  pendingChatTxs.splice(idx, 1);
+  renderPendingChatUI();
+}
+
+function handleChatInput() {
+  const input = document.getElementById('chatInput');
+  if (!input) return;
+  const txt = input.value.trim();
+  if (!txt) return;
+  appendChatLog(txt, 'user');
+  const intents = parseChatToTransactions(txt);
+  if (!intents.length) {
+    appendChatLog('Maaf, tidak menemukan nominal/dompet pada input. Coba: "habis 19k cash dan 10k spay"', 'bot');
+    input.value = '';
+    return;
+  }
+
+  const wallets = DB.getWallets();
+  const toApply = [];
+  const toConfirm = [];
+
+  intents.forEach(it => {
+    if (it.type === 'expense') {
+      const wk = it.sourceWallet || Object.keys(wallets)[0];
+      if (wk && (wallets[wk] || 0) >= it.amount && it.confidence === 'high') toApply.push(Object.assign({}, it, { sourceWallet: wk }));
+      else toConfirm.push(Object.assign({}, it, { sourceWallet: wk }));
+    } else if (it.type === 'income') {
+      const dst = it.destWallet || it.sourceWallet || Object.keys(wallets)[0];
+      if (dst && it.confidence === 'high') toApply.push(Object.assign({}, it, { sourceWallet: dst }));
+      else toConfirm.push(Object.assign({}, it, { destWallet: dst }));
+    } else if (it.type === 'transfer') {
+      if (it.sourceWallet && it.destWallet && it.confidence === 'high' && (wallets[it.sourceWallet] || 0) >= it.amount) toApply.push(it);
+      else toConfirm.push(it);
+    }
+  });
+
+  // apply immediate ones
+  if (toApply.length) {
+    toApply.forEach(a => {
+      const res = applyIntent(a);
+      if (!res.ok) appendChatLog(`Gagal menyimpan: ${res.msg}`, 'bot');
+      else {
+        if (a.type === 'transfer') appendChatLog(`Dicatat transfer: ${formatRp(a.amount)}`, 'bot');
+        else appendChatLog(`Dicatat: ${a.type === 'income' ? '+' : '-'}${formatRp(a.amount)}`, 'bot');
+      }
+    });
+    renderDashboard();
+  }
+
+  if (toConfirm.length) {
+    toConfirm.forEach(it => pendingChatTxs.push({ id: DB.generateId(), intent: it }));
+    appendChatLog('Beberapa transaksi perlu konfirmasi. Silakan periksa dan tekan "Simpan" jika benar.', 'bot');
+    renderPendingChatUI();
+  }
+
+  input.value = '';
 }
 
 function openEditModal(id) {
@@ -440,7 +897,9 @@ function renderHistory() {
   listEl.innerHTML = Object.keys(grouped).sort((a, b) => b.localeCompare(a)).map(dateKey => {
     const items = grouped[dateKey];
     const dayTotal = items.reduce((a, t) => t.type === 'income' ? a + t.amount : t.type === 'expense' ? a - t.amount : a, 0);
-    const walletLabels = { bni: 'BNI', cash: 'Cash', spay: 'ShopeePay' };
+    const meta = DB.getWalletMeta();
+    const wallets = DB.getWallets();
+    const walletLabels = Object.keys(wallets).reduce((acc, k) => { acc[k] = (meta[k] && meta[k].name) ? meta[k].name : (k === 'cash' ? 'Cash' : k.toUpperCase()); return acc; }, {});
     return `
       <div class="history-date-group">
         <div class="history-date-header">${formatDateGroup(dateKey)}<span style="float:right;color:${dayTotal >= 0 ? 'var(--green)' : 'var(--red)'}">${dayTotal >= 0 ? '+' : ''}${formatRp(dayTotal, true)}</span></div>
@@ -779,7 +1238,10 @@ function applyTemplate(id) {
 
   document.getElementById('txAmount').value = tpl.amount.toLocaleString('id-ID');
   document.getElementById('txDate').value = todayDateStr();
-  document.getElementById('txSourceWallet').value = tpl.wallet || 'cash';
+  // map wallet key to existing wallet, falling back to first available
+  const wallets = DB.getWallets();
+  const walletKeys = Object.keys(wallets);
+  document.getElementById('txSourceWallet').value = walletKeys.includes(tpl.wallet) ? tpl.wallet : (walletKeys[0] || 'cash');
   document.getElementById('txNote').value = tpl.note || '';
 
   document.querySelectorAll('.type-tab:not([data-context="modal"])').forEach(b => b.classList.toggle('active', b.dataset.type === tpl.type));
@@ -806,7 +1268,9 @@ function renderTemplateModal() {
     return;
   }
   el.innerHTML = templates.map(t => {
-    const walletLabels = { bni: 'BNI', cash: 'Cash', spay: 'ShopeePay' };
+    const wallets = DB.getWallets();
+    const meta = DB.getWalletMeta();
+    const walletLabels = Object.keys(wallets).reduce((acc, k) => { acc[k] = (meta[k] && meta[k].name) ? meta[k].name : (k === 'cash' ? 'Cash' : k.toUpperCase()); return acc; }, {});
     return `
       <div class="template-list-item" data-id="${t.id}">
         <div class="template-list-item-left">
@@ -843,7 +1307,7 @@ async function callAI(prompt, data) {
   const apiKey = localStorage.getItem('df_ai_key');
   if (!apiKey) { toast('Set API Key dulu di halaman AI Insight', 'error'); return null; }
 
-  const systemPrompt = `Kamu adalah AI financial advisor untuk aplikasi DuitFree. Analisis data keuangan pribadi pengguna dalam bahasa Indonesia.
+  const systemPrompt = `Kamu adalah AI financial advisor untuk aplikasi MyWallet. Analisis data keuangan pribadi pengguna dalam bahasa Indonesia.
 ATURAN:
 1. Gunakan HTML murni: <h3>, <p>, <ul><li>, <ol><li>, <b>
 2. Jangan gunakan Markdown (**, *, #)
@@ -926,7 +1390,7 @@ function buildAIData() {
 
 const AI_PROMPTS = {
   summary: 'Buat ringkasan komprehensif keuangan bulan ini. Soroti tren pengeluaran per kategori, bandingkan dengan bulan sebelumnya jika ada data, dan berikan penilaian kesehatan keuangan secara keseluruhan.',
-  predict: 'Berdasarkan pola pengeluaran bulan ini, prediksi kondisi keuangan di akhir bulan. Hitung estimasi sisa Duit Free dan kapan mungkin dana habis jika pola berlanjut.',
+  predict: 'Berdasarkan pola pengeluaran bulan ini, prediksi kondisi keuangan di akhir bulan. Hitung estimasi sisa saldo di MyWallet dan kapan mungkin dana habis jika pola berlanjut.',
   tips: 'Identifikasi 3-5 peluang konkret untuk berhemat berdasarkan pola pengeluaran. Berikan estimasi penghematan yang bisa dicapai.',
   anomaly: 'Deteksi pengeluaran yang tidak biasa atau anomali dalam data transaksi. Bandingkan dengan rata-rata dan flagging hari/kategori yang mencurigakan.',
   cashflow: 'Analisis arus kas 3 bulan terakhir. Apakah tren membaik atau memburuk? Berikan rekomendasi untuk memperbaiki cash flow.',
@@ -1012,7 +1476,7 @@ function exportData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `duitfree-backup-${todayDateStr()}.json`;
+  a.download = `mywallet-backup-${todayDateStr()}.json`;
   a.click();
   URL.revokeObjectURL(url);
   toast('Data berhasil diekspor', 'success');
@@ -1060,6 +1524,7 @@ function navigateTo(page) {
     setTxType('expense', 'page');
     document.querySelectorAll('.type-tab:not([data-context="modal"])').forEach(b => b.classList.toggle('active', b.dataset.type === 'expense'));
     renderQuickTemplateBar();
+    populateWalletSelects();
   }
   if (page === 'calendar') { selectedCalDay = todayDateStr(); renderCalendar(); }
   if (page === 'budget') renderBudgetPage();
@@ -1129,7 +1594,7 @@ function initPWA() {
     const { outcome } = await pwaPrompt.userChoice;
     if (outcome === 'accepted') {
       document.getElementById('pwa-install-bar').style.display = 'none';
-      toast('DuitFree berhasil diinstall!', 'success');
+      toast('MyWallet berhasil diinstall!', 'success');
     }
     pwaPrompt = null;
   });
@@ -1175,6 +1640,7 @@ function initApp() {
     document.getElementById('modalCategoryGroup').style.display = '';
     document.querySelectorAll('.type-tab[data-context="modal"]').forEach(b => b.classList.toggle('active', b.dataset.type === 'expense'));
     setTxType('expense', 'modal');
+    populateWalletSelects();
     showModal('transactionModal');
   });
 
@@ -1182,6 +1648,25 @@ function initApp() {
     renderTemplateModal();
     showModal('templateModal');
   });
+
+  // chat widget handlers
+  document.getElementById('openChatBtn')?.addEventListener('click', () => {
+    document.getElementById('chatBox').style.display = '';
+    document.getElementById('chatToggle').style.display = 'none';
+    document.getElementById('chatInput').focus();
+  });
+  document.getElementById('chatToggle')?.addEventListener('click', () => {
+    const box = document.getElementById('chatBox');
+    box.style.display = box.style.display === 'none' || !box.style.display ? '' : 'none';
+  });
+  document.getElementById('chatSend')?.addEventListener('click', () => handleChatInput());
+  document.getElementById('chatInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleChatInput(); });
+
+  // wallet settings handlers
+  document.getElementById('addWalletBtn')?.addEventListener('click', () => addWalletFromForm());
+  document.getElementById('newWalletBalance')?.addEventListener('input', (e) => formatInputRp(e.target));
+  renderWalletSettings();
+  showOnboardingIfNeeded();
 
   document.getElementById('closeModal').addEventListener('click', () => hideModal('transactionModal'));
   document.getElementById('closeEditModal').addEventListener('click', () => hideModal('editModal'));
@@ -1211,7 +1696,7 @@ function initApp() {
       hideModal('transactionModal');
       toast('Transaksi berhasil dicatat!', 'success');
       const { duitFree } = computeDuitFree();
-      if (duitFree < 0) setTimeout(() => toast('Peringatan: Duit Free kamu minus!', 'warning'), 500);
+      if (duitFree < 0) setTimeout(() => toast('Peringatan: Saldo AF kamu minus!', 'warning'), 500);
       renderDashboard();
     }
   });
@@ -1267,7 +1752,7 @@ function initApp() {
       document.querySelectorAll('.type-tab:not([data-context="modal"])').forEach(b => b.classList.toggle('active', b.dataset.type === currentTxType));
       toast('Transaksi berhasil dicatat!', 'success');
       const { duitFree } = computeDuitFree();
-      if (duitFree < 0) setTimeout(() => toast('Peringatan: Duit Free kamu minus!', 'warning'), 500);
+      if (duitFree < 0) setTimeout(() => toast('Peringatan: Saldo AF kamu minus!', 'warning'), 500);
       renderDashboard();
     }
   });
@@ -1406,13 +1891,23 @@ function initApp() {
   });
 
   document.getElementById('saveWallets').addEventListener('click', () => {
-    DB.saveWallets({
-      bni: parseRpInput(document.getElementById('settingBni').value),
-      cash: parseRpInput(document.getElementById('settingCash').value),
-      spay: parseRpInput(document.getElementById('settingSpay').value)
+    const rows = document.querySelectorAll('#walletsSettingsList .wallet-settings-row');
+    const wallets = DB.getWallets();
+    const meta = DB.getWalletMeta();
+    rows.forEach(row => {
+      const key = row.dataset.wallet;
+      const name = (row.querySelector('.wallet-name-input')?.value || key).trim();
+      const type = row.querySelector('.wallet-type-select')?.value || 'cash';
+      const balance = parseRpInput(row.querySelector('.wallet-balance-input')?.value);
+      const target = parseRpInput(row.querySelector('.wallet-target-input')?.value || '');
+      wallets[key] = balance;
+      meta[key] = { name, type, target: target || 0 };
     });
+    DB.saveWallets(wallets);
+    DB.saveWalletMeta(meta);
     toast('Saldo dompet diperbarui', 'success');
     renderDashboard();
+    renderWalletSettings();
   });
 
   document.getElementById('saveSettings').addEventListener('click', () => {

@@ -9,18 +9,18 @@
   --text-primary: #f0f2f8;
   --text-secondary: #8b8fa8;
   --text-muted: #555b75;
-  --accent: #6366f1;
-  --accent-light: #818cf8;
-  --accent-dim: rgba(99,102,241,0.15);
+  --accent: #2b6ef6; /* GoPay-like blue */
+  --accent-light: #4ea0ff;
+  --accent-dim: rgba(46,115,245,0.12);
   --green: #10b981;
   --green-dim: rgba(16,185,129,0.15);
   --red: #ef4444;
   --red-dim: rgba(239,68,68,0.12);
   --yellow: #f59e0b;
   --yellow-dim: rgba(245,158,11,0.12);
-  --wallet-bni: #3b82f6;
+  --wallet-bni: #2b6ef6;
   --wallet-cash: #10b981;
-  --wallet-spay: #f97316;
+  --wallet-spay: #ffd166; /* accent for quick-pay style */
   --sidebar-width: 240px;
   --topbar-height: 64px;
   --radius: 16px;
@@ -253,9 +253,9 @@ body {
   transition: all var(--transition);
 }
 
-.card-duitfree { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+.card-duitfree { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); color: white; }
 .card-duitfree.minus { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-.card-total { background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%); color: white; }
+.card-total { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); color: white; }
 
 .card-label { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.85; margin-bottom: 8px; }
 .card-amount { font-family: var(--font-display); font-size: 26px; font-weight: 800; letter-spacing: -1px; line-height: 1; margin-bottom: 6px; word-break: break-all; }
@@ -268,7 +268,7 @@ body {
   box-shadow: var(--shadow);
 }
 
-.card-flat:hover { border-color: rgba(99,102,241,0.2); }
+.card-flat:hover { border-color: rgba(46,115,245,0.2); }
 
 .wallets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
 
