@@ -83,7 +83,6 @@
         </div>
       </header>
 
-      <!-- DASHBOARD PAGE -->
       <div id="page-dashboard" class="page active">
         <div class="page-inner">
           <div class="welcome-row">
@@ -167,7 +166,6 @@
         </div>
       </div>
 
-      <!-- TRANSACTIONS PAGE -->
       <div id="page-transactions" class="page">
         <div class="page-inner">
           <div class="page-header-row"><h2 class="page-title">Tambah Transaksi</h2></div>
@@ -231,7 +229,6 @@
         </div>
       </div>
 
-      <!-- CALENDAR PAGE -->
       <div id="page-calendar" class="page">
         <div class="page-inner">
           <div class="page-header-row">
@@ -257,7 +254,6 @@
         </div>
       </div>
 
-      <!-- BUDGET PAGE -->
       <div id="page-budget" class="page">
         <div class="page-inner">
           <div class="page-header-row"><h2 class="page-title">Budget Kategori</h2></div>
@@ -280,7 +276,6 @@
         </div>
       </div>
 
-      <!-- CICILAN PAGE -->
       <div id="page-cicilan" class="page">
         <div class="page-inner">
           <div class="page-header-row"><h2 class="page-title">Kalkulator Cicilan</h2></div>
@@ -353,22 +348,9 @@
         </div>
       </div>
 
-      <!-- AI PAGE -->
       <div id="page-ai" class="page">
         <div class="page-inner">
           <div class="page-header-row"><h2 class="page-title">AI Financial Insight</h2></div>
-          <div class="ai-config-card card card-flat" style="margin-bottom:16px">
-            <div class="card-section-title"><i class="fa-solid fa-cloud"></i>AI Siap Pakai</div>
-            <div class="form-group">
-              <label class="form-label">Endpoint tertanam</label>
-              <div class="ai-endpoint-row">
-                <input type="url" id="aiApiKey" class="form-input" readonly />
-                <button class="btn-secondary" id="resetAiEndpoint" type="button"><i class="fa-solid fa-rotate-left"></i>Default</button>
-              </div>              <p style="font-size:12px;color:var(--text-secondary);margin-top:8px">AI sudah memakai Google Apps Script bawaan, jadi aplikasi bisa langsung dipakai tanpa menempel link manual.</p>
-              <p style="font-size:11px;color:var(--green);margin-top:8px;font-weight:500">Siap pakai: MyWallet mengirim data ringkas ke endpoint AI tertanam untuk analisis keuangan.</p>
-            </div>
-            <button class="btn-secondary" id="saveApiKey"><i class="fa-solid fa-sliders"></i>Aktifkan mode ganti endpoint</button>
-          </div>
           <div class="ai-prompts-grid">
             <div class="ai-prompt-card" data-prompt="summary">
               <div class="ai-prompt-icon"><i class="fa-solid fa-chart-line"></i></div>
@@ -421,7 +403,6 @@
         </div>
       </div>
 
-      <!-- HISTORY PAGE -->
       <div id="page-history" class="page">
         <div class="page-inner">
           <div class="page-header-row"><h2 class="page-title">Riwayat Transaksi</h2></div>
@@ -448,7 +429,6 @@
         </div>
       </div>
 
-      <!-- SETTINGS PAGE -->
       <div id="page-settings" class="page">
         <div class="page-inner">
           <div class="page-header-row"><h2 class="page-title">Pengaturan</h2></div>
@@ -579,7 +559,6 @@
     </nav>
   </div>
 
-  <!-- CHAT INPUT -->
   <div id="chatWidget" style="position:fixed;right:12px;bottom:86px;z-index:1200">
     <div id="chatToggle" class="btn-primary" style="border-radius:999px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-comments"></i></div>
     <div id="chatBox" style="display:none;width:320px;max-width:92vw;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-top:6px;position:absolute;right:0;bottom:100%;max-height:500px;flex-direction:column">
@@ -601,7 +580,6 @@
     </div>
   </div>
 
-  <!-- TRANSACTION MODAL -->
   <div id="transactionModal" class="modal-overlay" style="display:none">
     <div class="modal-box">
       <div class="modal-header">
@@ -655,7 +633,6 @@
     </div>
   </div>
 
-  <!-- EDIT MODAL -->
   <div id="editModal" class="modal-overlay" style="display:none">
     <div class="modal-box">
       <div class="modal-header">
@@ -696,7 +673,6 @@
     </div>
   </div>
 
-  <!-- TEMPLATE MODAL -->
   <div id="templateModal" class="modal-overlay" style="display:none">
     <div class="modal-box">
       <div class="modal-header">
@@ -712,7 +688,6 @@
     </div>
   </div>
 
-  <!-- CALENDAR DAY MODAL -->
   <div id="calDayModal" class="modal-overlay" style="display:none">
     <div class="modal-box">
       <div class="modal-header">
@@ -725,7 +700,6 @@
     </div>
   </div>
   
-  <!-- ONBOARDING MODAL (First-run) -->
   <div id="onboardingModal" class="modal-overlay" style="display:none">
     <div class="modal-box">
       <div class="modal-header">
@@ -733,12 +707,10 @@
         <button class="icon-btn" id="closeOnboardingModal" onclick="hideModal('onboardingModal')"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body" style="padding:12px">
-        <!-- content injected by JS -->
       </div>
     </div>
   </div>
 
-  <!-- CONFIRM MODAL -->
   <div id="confirmModal" class="modal-overlay" style="display:none">
     <div class="modal-box modal-box-sm">
       <div class="modal-header">
