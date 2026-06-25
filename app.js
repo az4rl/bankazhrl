@@ -1217,7 +1217,6 @@ function calculateSplit() {
 }
 
 /* ==================== CICILAN ==================== */
-let cicilanChart = null;
 function hitungCicilan() {
   const pokok = parseRpInput(document.getElementById('cicilanPokok')?.value);
   const dp = parseRpInput(document.getElementById('cicilanDP')?.value);
