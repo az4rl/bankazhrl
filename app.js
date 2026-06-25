@@ -1333,13 +1333,14 @@ function deleteTemplate(id) {
 }
 
 async function callAI(prompt, data) {
-  const gasUrl = DEFAULT_GAS_URL;
+  const gasUrl = getAIEndpoint();
 
   try {
     const res = await fetch(gasUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'ai_insight', prompt, data })
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'ai_insight', prompt, data }),
+      redirect: 'follow'
     });
 
     if (!res.ok) throw new Error('Request gagal: ' + res.statusText);
