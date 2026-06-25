@@ -20,10 +20,6 @@ const DB = {
 
 const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwEmqCzLn4s09pW0lvqlWnU1sJP3iMJJ5Q-Xk8JuX0Uddy21wG-LHpm6L2G2y9z4Gac/exec';
 
-function getAIEndpoint() {
-  return localStorage.getItem('df_gas_url') || DEFAULT_GAS_URL;
-}
-
 const CATEGORIES = {
   expense: [
     { id: 'makan', label: 'Makan', icon: 'fa-solid fa-utensils' },
@@ -1337,7 +1333,7 @@ function deleteTemplate(id) {
 }
 
 async function callAI(prompt, data) {
-  const gasUrl = getAIEndpoint();
+  const gasUrl = DEFAULT_GAS_URL;
 
   try {
     const res = await fetch(gasUrl, {
@@ -1383,13 +1379,6 @@ function navigateTo(page) {
   }
   if (page === 'calendar') { selectedCalDay = todayDateStr(); renderCalendar(); }
   if (page === 'budget') renderBudgetPage();
-  if (page === 'ai') {
-    const endpointInput = document.getElementById('aiApiKey');
-    if (endpointInput) {
-      endpointInput.value = getAIEndpoint();
-      endpointInput.readOnly = true;
-    }
-  }
 
   closeSidebar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1935,45 +1924,6 @@ function initApp() {
 
   document.getElementById('aiCustomPrompt').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('aiCustomSend').click();
-  });
-
-  document.getElementById('saveApiKey').addEventListener('click', () => {
-    const input = document.getElementById('aiApiKey');
-    if (input.readOnly) {
-      input.readOnly = false;
-      input.focus();
-      toast('Mode teknis aktif. Ubah endpoint hanya jika perlu.', 'info');
-      return;
-    }
-    const url = input.value.trim();
-    if (!url) {
-      input.value = DEFAULT_GAS_URL;
-      localStorage.removeItem('df_gas_url');
-      toast('Endpoint dikembalikan ke default', 'success');
-      return;
-    }
-    if (!url.startsWith('https://script.google.com')) { toast('URL harus berasal dari Google Apps Script', 'warning'); return; }
-    localStorage.setItem('df_gas_url', url);
-    input.readOnly = true;
-    toast('Endpoint AI disimpan', 'success');
-  });
-
-  document.getElementById('resetAiEndpoint')?.addEventListener('click', () => {
-    localStorage.removeItem('df_gas_url');
-    const input = document.getElementById('aiApiKey');
-    if (input) {
-      input.value = DEFAULT_GAS_URL;
-      input.readOnly = true;
-    }
-    toast('Endpoint AI default dipakai', 'success');
-  });
-
-  document.getElementById('toggleApiKey')?.addEventListener('click', () => {
-    const input = document.getElementById('aiApiKey');
-    if (!input || input.type !== 'password') return;
-    const icon = document.querySelector('#toggleApiKey i');
-    if (input.type === 'password') { input.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; }
-    else { input.type = 'password'; icon.className = 'fa-solid fa-eye'; }
   });
 
   document.querySelectorAll('#page-settings .amount-input').forEach(inp => {
