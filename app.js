@@ -518,6 +518,7 @@ function renderDashboardBudgetBars() {
 }
 
 function renderDonut(w, total) {
+  if (typeof Chart === 'undefined') return;
   const canvas = document.getElementById('walletDonutChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -941,6 +942,7 @@ function deleteBudget(cat) {
 }
 
 function renderBudgetChart(budgets, monthTxs) {
+  if (typeof Chart === 'undefined') return;
   const canvas = document.getElementById('budgetChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -1143,6 +1145,7 @@ function saveNWSnapshot() {
 }
 
 function renderNWChart() {
+  if (typeof Chart === 'undefined') return;
   const canvas = document.getElementById('networthChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -1260,6 +1263,7 @@ function hitungCicilan() {
 }
 
 function renderCicilanChart(rows) {
+  if (typeof Chart === 'undefined') return;
   const canvas = document.getElementById('cicilanChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -2434,4 +2438,8 @@ function initApp() {
   if (Notification?.permission === 'granted') scheduleNotifications();
 }
 
-document.addEventListener('DOMContentLoaded', initApp);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
