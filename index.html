@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0d0f14" />
+  <meta name="theme-color" content="#111827" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="MyWallet" />
   <meta name="description" content="Kendali keuangan pribadimu" />
   <title>MyWallet</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
@@ -358,21 +358,16 @@
         <div class="page-inner">
           <div class="page-header-row"><h2 class="page-title">AI Financial Insight</h2></div>
           <div class="ai-config-card card card-flat" style="margin-bottom:16px">
-            <div class="card-section-title"><i class="fa-solid fa-cloud"></i>Konfigurasi Google Apps Script</div>
+            <div class="card-section-title"><i class="fa-solid fa-cloud"></i>AI Siap Pakai</div>
             <div class="form-group">
-              <label class="form-label">Google Apps Script URL</label>
-              <input type="url" id="aiApiKey" class="form-input" placeholder="https://script.google.com/macros/d/..." />
-              <p style="font-size:12px;color:var(--text-secondary);margin-top:8px"><strong>Bagaimana setup?</strong></p>
-              <ol style="font-size:11px;color:var(--text-muted);margin-top:4px;margin-left:16px">
-                <li>Buka <a href="https://script.google.com" target="_blank" style="color:var(--accent)">script.google.com</a></li>
-                <li>Buat project baru dan copy-paste kode dari file <strong>GAS_SETUP.md</strong> di repo ini</li>
-                <li>Deploy sebagai <strong>Web app</strong> dengan akses "<strong>Anyone</strong>"</li>
-                <li>Copy URL deployment → paste di sini</li>
-                <li>Atur API keys (Gemini, OpenRouter) di Project Settings</li>
-              </ol>
-              <p style="font-size:11px;color:var(--green);margin-top:8px;font-weight:500">✓ MyWallet akan request AI analysis via GAS, yang memanggil Gemini atau OpenRouter dengan automatic fallback.</p>
+              <label class="form-label">Endpoint tertanam</label>
+              <div class="ai-endpoint-row">
+                <input type="url" id="aiApiKey" class="form-input" readonly />
+                <button class="btn-secondary" id="resetAiEndpoint" type="button"><i class="fa-solid fa-rotate-left"></i>Default</button>
+              </div>              <p style="font-size:12px;color:var(--text-secondary);margin-top:8px">AI sudah memakai Google Apps Script bawaan, jadi aplikasi bisa langsung dipakai tanpa menempel link manual.</p>
+              <p style="font-size:11px;color:var(--green);margin-top:8px;font-weight:500">Siap pakai: MyWallet mengirim data ringkas ke endpoint AI tertanam untuk analisis keuangan.</p>
             </div>
-            <button class="btn-primary" id="saveApiKey"><i class="fa-solid fa-floppy-disk"></i>Simpan GAS URL</button>
+            <button class="btn-secondary" id="saveApiKey"><i class="fa-solid fa-sliders"></i>Aktifkan mode ganti endpoint</button>
           </div>
           <div class="ai-prompts-grid">
             <div class="ai-prompt-card" data-prompt="summary">
@@ -531,17 +526,30 @@
             </div>
           </div>
           <div class="settings-section">
+            <div class="settings-section-title"><i class="fa-solid fa-mobile-screen-button"></i>Install Aplikasi</div>
+            <div class="card card-flat">
+              <div class="setting-help">
+                <p style="margin-bottom:12px">Tambahkan MyWallet ke homescreen supaya terbuka seperti aplikasi dan tetap bisa memuat halaman utama saat koneksi tidak stabil.</p>
+                <button class="btn-primary" id="settingsInstallBtn" type="button" style="display:none"><i class="fa-solid fa-download"></i>Install ke Homescreen</button>
+                <p id="settingsInstalledText" class="install-status-text">MyWallet sudah berjalan sebagai aplikasi terinstall.</p>
+                <p id="settingsInstallHint" style="margin-top:10px;font-size:12px;color:var(--text-muted)">Jika tombol belum muncul, buka lewat Chrome/Edge Android atau menu Share di Safari lalu pilih Add to Home Screen.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
             <div class="settings-section-title"><i class="fa-solid fa-book"></i>Panduan Penggunaan</div>
             <div class="card card-flat">
-              <div style="padding:16px;font-size:14px;color:var(--text-secondary);line-height:1.6">
-                <ol>
-                  <li><strong>Catat Transaksi:</strong> Tekan <em>Catat</em> → pilih tipe → isi nominal, tanggal, dompet, lalu tekan <em>Simpan</em>.</li>
-                  <li><strong>Gunakan Template:</strong> Centang <em>Simpan sebagai template</em> untuk menyimpan input cepat.</li>
-                  <li><strong>Atur Budget:</strong> Buka halaman <em>Budget</em> untuk menetapkan batas per kategori.</li>
-                  <li><strong>Cek Kewajiban:</strong> Kelola tagihan di <em>Pengaturan → Kewajiban Tetap</em>.</li>
-                  <li><strong>Backup & Restore:</strong> Ekspor data untuk backup atau impor file JSON untuk pemulihan.</li>
-                  <li><strong>Install di Perangkat:</strong> Klik banner install (jika muncul) untuk menambahkan ke layar utama.</li>
-                  <li><strong>AI Insight:</strong> (opsional) Masukkan Anthropic API Key di <em>AI Insight</em> untuk analisis otomatis.</li>
+              <div class="setting-help">
+                <ol class="guide-list">
+                  <li><strong>Mulai dari Pengaturan:</strong> isi nama, dompet, saldo awal, target tabungan, jatah harian, dan sisa hari kerja.</li>
+                  <li><strong>Catat transaksi:</strong> buka Catat, pilih Pengeluaran/Pemasukan/Transfer, isi nominal, tanggal, dompet, kategori, lalu simpan.</li>
+                  <li><strong>Pakai Chat Catat:</strong> tekan tombol chat dan tulis contoh "makan 19000 cash" atau "bensin 50k bni".</li>
+                  <li><strong>Gunakan template:</strong> centang Simpan sebagai template saat input transaksi berulang agar bisa dicatat cepat berikutnya.</li>
+                  <li><strong>Kontrol budget:</strong> buka Budget untuk memberi batas per kategori, lalu pantau progresnya di Dashboard.</li>
+                  <li><strong>Kelola kewajiban:</strong> tambah tagihan tetap di Pengaturan, tandai lunas dari Dashboard, lalu reset saat bulan baru.</li>
+                  <li><strong>Pakai AI Insight:</strong> langsung pilih kartu analisis atau tanya bebas. Endpoint AI sudah tertanam.</li>
+                  <li><strong>Backup data:</strong> ekspor JSON secara berkala sebelum pindah perangkat atau membersihkan browser.</li>
                 </ol>
               </div>
             </div>
