@@ -1333,7 +1333,7 @@ function deleteTemplate(id) {
 }
 
 async function callAI(prompt, data) {
-  const gasUrl = getAIEndpoint();
+  const gasUrl = DEFAULT_GAS_URL;
 
   try {
     const res = await fetch(gasUrl, {
