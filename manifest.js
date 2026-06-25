@@ -1,11 +1,12 @@
 {
   "name": "MyWallet",
   "short_name": "MyWallet",
-  "description": "Kendali keuangan pribadimu",
-  "start_url": "/index.html",
+  "description": "Kendali keuangan pribadi",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0d0f14",
-  "theme_color": "#0d0f14",
+  "background_color": "#0b111d",
+  "theme_color": "#111827",
   "icons": [
     {
       "src": "icon.svg",
