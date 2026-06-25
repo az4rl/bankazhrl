@@ -20,7 +20,7 @@
   --yellow-dim: rgba(245,158,11,0.12);
   --wallet-bni: #475569;
   --wallet-cash: #10b981;
-  --wallet-spay: #ffd166; /* accent for quick-pay style */
+  --wallet-spay: #ffd166;
   --sidebar-width: 240px;
   --topbar-height: 64px;
   --radius: 16px;
@@ -538,7 +538,6 @@ body {
 .history-tx-item:last-child { border-bottom: none; }
 .history-tx-item:hover { background: var(--accent-dim); }
 
-/* CALENDAR */
 .calendar-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 12px; }
 .cal-day-header { text-align: center; font-size: 11px; font-weight: 600; color: var(--text-muted); padding: 6px 0; text-transform: uppercase; }
@@ -569,7 +568,6 @@ body {
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
 .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
 
-/* BUDGET */
 .budget-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
 .budget-list { display: flex; flex-direction: column; gap: 12px; }
 
@@ -593,7 +591,6 @@ body {
 .budget-progress.warning { background: linear-gradient(90deg, var(--yellow), #fbbf24); }
 .budget-progress.danger { background: linear-gradient(90deg, var(--red), #f87171); }
 
-/* DASHBOARD BUDGET BARS */
 #dashboardBudgetBars { display: flex; flex-direction: column; gap: 8px; }
 .db-budget-row { display: flex; align-items: center; gap: 10px; }
 .db-budget-label { font-size: 12px; color: var(--text-secondary); width: 80px; flex-shrink: 0; }
@@ -604,7 +601,6 @@ body {
 .db-budget-bar.danger { background: var(--red); }
 .db-budget-amounts { font-size: 11px; color: var(--text-muted); width: 120px; text-align: right; flex-shrink: 0; }
 
-/* CICILAN */
 .cicilan-form { display: flex; flex-direction: column; gap: 0; }
 .amortization-table-wrap { overflow-x: auto; max-height: 280px; overflow-y: auto; }
 .amortization-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -613,7 +609,6 @@ body {
 .amortization-table tr:last-child td { border-bottom: none; }
 .amortization-table tr:hover td { background: var(--accent-dim); color: var(--text-primary); }
 
-/* AI INSIGHT */
 .ai-prompts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 0; }
 
 .ai-prompt-card {
@@ -634,11 +629,6 @@ body {
 .ai-input-row { display: flex; gap: 10px; }
 .ai-input-row .form-input { flex: 1; }
 
-.api-key-wrap { display: flex; gap: 8px; align-items: center; }
-.api-key-wrap .form-input { flex: 1; }
-.ai-config-card { padding: 20px 24px; }
-.ai-endpoint-row { display: flex; gap: 8px; align-items: center; }
-.ai-endpoint-row .form-input { flex: 1; }
 .setting-help { padding: 16px; font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
 .guide-list { padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
 .install-status-text { margin-top: 10px; font-size: 12px; color: var(--green); display: none; }
@@ -661,7 +651,6 @@ body {
 .ai-result-content li { margin-bottom: 4px; }
 .ai-result-content b { color: var(--text-primary); font-weight: 600; }
 
-/* SETTINGS */
 .settings-section { margin-bottom: 24px; }
 .settings-section-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
 .settings-form { display: flex; flex-direction: column; gap: 16px; }
@@ -681,7 +670,6 @@ body {
 
 .add-obligation-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; padding-top: 12px; border-top: 1px solid var(--border); }
 
-/* MODALS */
 .modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.6);
@@ -692,7 +680,6 @@ body {
   padding: 16px;
   animation: overlayIn 0.2s ease;
 }
-/* Show modal when inline style is cleared (no display property in style attribute) */
 .modal-overlay:not([style*="display:none"]) { display: flex; }
 @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -717,7 +704,6 @@ body {
 .confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .edit-action-row { display: flex; gap: 10px; justify-content: space-between; margin-top: 4px; }
 
-/* TEMPLATE MODAL */
 .template-list-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px;
@@ -734,7 +720,6 @@ body {
 .template-list-item-meta { font-size: 11px; color: var(--text-muted); }
 .template-list-item-amount { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--accent-light); }
 
-/* TOAST */
 .toast-container { position: fixed; bottom: 80px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); font-size: 13px; font-weight: 500; color: var(--text-primary); min-width: 240px; max-width: 320px; animation: toastIn 0.3s ease; pointer-events: all; }
 .toast.success { border-left: 3px solid var(--green); }
@@ -855,19 +840,16 @@ select.form-input {
   .cal-day-num { font-size: 11px; }
   .cal-day-amount { font-size: 8px; }
 
-  /* Chat widget mobile optimizations */
   #chatWidget { right: 8px; bottom: 82px; }
   #chatBox { width: calc(100vw - 16px); max-width: none; max-height: 60vh; position: fixed; right: 8px; bottom: auto; top: 50%; transform: translateY(-50%); }
   #chatBox #chatLog { min-height: 100px; max-height: 40vh; }
   #chatBox input, #chatBox button { font-size: 16px; min-height: 44px; }
 
-  /* Modal mobile optimizations */
   .modal-box { max-width: 95vw; width: 100%; max-height: 95vh; border-radius: 16px 16px 0 0; }
   .modal-header { padding: 16px; }
   .modal-body { padding: 16px; }
   .modal-title { font-size: 15px; }
 
-  /* Form inputs mobile-friendly */
   .form-input, .btn-primary, .btn-secondary { min-height: 44px; font-size: 16px; }
   .form-row { gap: 8px; }
 }
