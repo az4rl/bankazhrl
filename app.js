@@ -18,6 +18,12 @@ const DB = {
   generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 };
 
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwEmqCzLn4s09pW0lvqlWnU1sJP3iMJJ5Q-Xk8JuX0Uddy21wG-LHpm6L2G2y9z4Gac/exec';
+
+function getAIEndpoint() {
+  return localStorage.getItem('df_gas_url') || DEFAULT_GAS_URL;
+}
+
 const CATEGORIES = {
   expense: [
     { id: 'makan', label: 'Makan', icon: 'fa-solid fa-utensils' },
@@ -1331,8 +1337,7 @@ function deleteTemplate(id) {
 }
 
 async function callAI(prompt, data) {
-  const gasUrl = localStorage.getItem('df_gas_url') || 'https://script.google.com/macros/s/AKfycbwEmqCzLn4s09pW0lvqlWnU1sJP3iMJJ5Q-Xk8JuX0Uddy21wG-LHpm6L2G2y9z4Gac/exec';
-  if (!gasUrl) { toast('Set Google Apps Script URL di halaman AI Insight', 'error'); return null; }
+  const gasUrl = getAIEndpoint();
 
   try {
     const res = await fetch(gasUrl, {
@@ -1379,8 +1384,11 @@ function navigateTo(page) {
   if (page === 'calendar') { selectedCalDay = todayDateStr(); renderCalendar(); }
   if (page === 'budget') renderBudgetPage();
   if (page === 'ai') {
-    const savedKey = localStorage.getItem('df_gas_url') || 'https://script.google.com/macros/s/AKfycbwEmqCzLn4s09pW0lvqlWnU1sJP3iMJJ5Q-Xk8JuX0Uddy21wG-LHpm6L2G2y9z4Gac/exec';
-    if (savedKey) document.getElementById('aiApiKey').value = savedKey;
+    const endpointInput = document.getElementById('aiApiKey');
+    if (endpointInput) {
+      endpointInput.value = getAIEndpoint();
+      endpointInput.readOnly = true;
+    }
   }
 
   closeSidebar();
@@ -1587,31 +1595,35 @@ function closeSidebar() {
 let pwaPrompt = null;
 
 function initPWA() {
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    pwaPrompt = e;
-    const dismissed = localStorage.getItem('df_pwa_dismissed');
-    if (!dismissed) document.getElementById('pwa-install-bar').style.display = 'flex';
-    
+  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const updateInstallState = () => {
     const btn = document.getElementById('settingsInstallBtn');
-    if (btn) {
-      btn.style.display = 'inline-flex';
-      document.getElementById('settingsInstalledText').style.display = 'none';
-    }
-  });
+    const installed = document.getElementById('settingsInstalledText');
+    const hint = document.getElementById('settingsInstallHint');
+    if (!btn) return;
 
-  window.addEventListener('appinstalled', () => {
-    pwaPrompt = null;
-    document.getElementById('pwa-install-bar').style.display = 'none';
-    const btn = document.getElementById('settingsInstallBtn');
-    if (btn) {
+    if (isStandalone()) {
       btn.style.display = 'none';
-      document.getElementById('settingsInstalledText').style.display = 'block';
+      if (installed) installed.style.display = 'block';
+      if (hint) hint.textContent = 'Aplikasi sudah berjalan dari homescreen.';
+      return;
     }
-  });
 
-  document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
-    if (!pwaPrompt) return;
+    btn.style.display = 'inline-flex';
+    if (installed) installed.style.display = 'none';
+    if (hint) {
+      hint.textContent = pwaPrompt
+        ? 'Klik tombol install untuk menambahkan MyWallet ke homescreen.'
+        : 'Jika prompt tidak muncul, buka menu browser lalu pilih Install app atau Add to Home Screen.';
+    }
+  };
+
+  const promptInstall = async () => {
+    if (!pwaPrompt) {
+      toast('Gunakan menu browser: Install app atau Add to Home Screen', 'info');
+      updateInstallState();
+      return;
+    }
     pwaPrompt.prompt();
     const { outcome } = await pwaPrompt.userChoice;
     if (outcome === 'accepted') {
@@ -1619,17 +1631,25 @@ function initPWA() {
       toast('MyWallet berhasil diinstall!', 'success');
     }
     pwaPrompt = null;
+    updateInstallState();
+  };
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    pwaPrompt = e;
+    const dismissed = localStorage.getItem('df_pwa_dismissed');
+    if (!dismissed) document.getElementById('pwa-install-bar').style.display = 'flex';
+    updateInstallState();
   });
 
-  document.getElementById('settingsInstallBtn')?.addEventListener('click', async () => {
-    if (!pwaPrompt) return;
-    pwaPrompt.prompt();
-    const { outcome } = await pwaPrompt.userChoice;
-    if (outcome === 'accepted') {
-      toast('MyWallet berhasil diinstall!', 'success');
-    }
+  window.addEventListener('appinstalled', () => {
     pwaPrompt = null;
+    document.getElementById('pwa-install-bar').style.display = 'none';
+    updateInstallState();
   });
+
+  document.getElementById('pwa-install-btn')?.addEventListener('click', promptInstall);
+  document.getElementById('settingsInstallBtn')?.addEventListener('click', promptInstall);
 
   document.getElementById('pwa-dismiss-btn')?.addEventListener('click', () => {
     document.getElementById('pwa-install-bar').style.display = 'none';
@@ -1642,13 +1662,7 @@ function initPWA() {
     });
   }
 
-  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-    const btn = document.getElementById('settingsInstallBtn');
-    if (btn) {
-      btn.style.display = 'none';
-      document.getElementById('settingsInstalledText').style.display = 'block';
-    }
-  }
+  updateInstallState();
 }
 
 function initApp() {
@@ -1924,11 +1938,34 @@ function initApp() {
   });
 
   document.getElementById('saveApiKey').addEventListener('click', () => {
-    const url = document.getElementById('aiApiKey').value.trim();
-    if (!url) { toast('Masukkan Google Apps Script URL', 'error'); return; }
-    if (!url.startsWith('https://script.google.com')) { toast('URL harus berasal dari Google Apps Script', 'warning'); }
+    const input = document.getElementById('aiApiKey');
+    if (input.readOnly) {
+      input.readOnly = false;
+      input.focus();
+      toast('Mode teknis aktif. Ubah endpoint hanya jika perlu.', 'info');
+      return;
+    }
+    const url = input.value.trim();
+    if (!url) {
+      input.value = DEFAULT_GAS_URL;
+      localStorage.removeItem('df_gas_url');
+      toast('Endpoint dikembalikan ke default', 'success');
+      return;
+    }
+    if (!url.startsWith('https://script.google.com')) { toast('URL harus berasal dari Google Apps Script', 'warning'); return; }
     localStorage.setItem('df_gas_url', url);
-    toast('GAS URL disimpan', 'success');
+    input.readOnly = true;
+    toast('Endpoint AI disimpan', 'success');
+  });
+
+  document.getElementById('resetAiEndpoint')?.addEventListener('click', () => {
+    localStorage.removeItem('df_gas_url');
+    const input = document.getElementById('aiApiKey');
+    if (input) {
+      input.value = DEFAULT_GAS_URL;
+      input.readOnly = true;
+    }
+    toast('Endpoint AI default dipakai', 'success');
   });
 
   document.getElementById('toggleApiKey')?.addEventListener('click', () => {
