@@ -1838,22 +1838,18 @@ function setCurrentDate() {
 
 function openSidebar() {
   document.getElementById('sidebar')?.classList.add('open');
-  let ov = document.getElementById('sidebar-overlay');
-  if (!ov) {
-    ov = document.createElement('div');
-    ov.id = 'sidebar-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:199;background:transparent';
-    ov.addEventListener('click', closeSidebar);
-    document.body.appendChild(ov);
+  const ov = document.getElementById('sidebar-overlay');
+  if (ov) {
+    ov.classList.add('visible');
+    ov.onclick = closeSidebar;
   }
-  ov.style.display = 'block';
 }
 
 function closeSidebar() {
   document.getElementById('sidebar')?.classList.remove('open');
-  const ov = document.getElementById('sidebar-overlay');
-  if (ov) ov.style.display = 'none';
+  document.getElementById('sidebar-overlay')?.classList.remove('visible');
 }
+
 let pwaPrompt = null;
 function initPWA() {
   const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
