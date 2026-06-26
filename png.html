@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Generator PNG MyWallet</title>
+</head>
+<body style="background: #0b111d; color: white; font-family: sans-serif; text-align: center; padding: 50px;">
+  <button onclick="downloadPNG(192)" style="padding: 10px 20px; margin: 10px; cursor: pointer; border-radius: 8px; border: none; background: #3b82f6; color: white;">Unduh icon-192.png</button>
+  <button onclick="downloadPNG(512)" style="padding: 10px 20px; margin: 10px; cursor: pointer; border-radius: 8px; border: none; background: #3b82f6; color: white;">Unduh icon-512.png</button>
+
+  <script>
+    const svgCode = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><rect width="512" height="512" rx="112" fill="#0f172a"/><path d="M416 208H96C78.3 208 64 222.3 64 240v144c0 35.3 28.7 64 64 64h256c35.3 0 64-28.7 64-64V240c0-17.7-14.3-32-32-32zm-32 128c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z" fill="#ffffff"/><path d="M384 64H128C92.7 64 64 92.7 64 128v48h384v-48c0-35.3-28.7-64-64-64z" fill="#ffffff" opacity="0.8"/></svg>`;
+    
+    function downloadPNG(size) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      const blob = new Blob([svgCode], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, size, size);
+        URL.revokeObjectURL(url);
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = `icon-${size}.png`;
+        a.click();
+      };
+      img.src = url;
+    }
+  </script>
+</body>
+</html>
