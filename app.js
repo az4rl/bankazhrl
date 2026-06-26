@@ -2276,6 +2276,13 @@ function initApp() {
     btn.addEventListener('click', e => { e.preventDefault(); navigateTo('history'); });
   });
 
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('[data-page]');
+    if (btn && (btn.classList.contains('btn-ghost') || btn.classList.contains('bottom-nav-item') || btn.classList.contains('nav-item'))) {
+      e.preventDefault();
+      navigateTo(btn.dataset.page);
+    }
+  });
   showOnboardingIfNeeded();
   renderDashboard();
 
