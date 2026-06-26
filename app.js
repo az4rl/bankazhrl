@@ -1778,7 +1778,7 @@ function showOnboardingIfNeeded() {
 }
 
 function exportData() {
-  const data = { wallets: DB.getWallets(), settings: DB.getSettings(), obligations: DB.getObligations(), transactions: DB.getTransactions(), budgets: DB.getBudgets(), templates: DB.getTemplates(), goals: DB.getGoals(), recurring: DB.getRecurring(), nwAssets: DB.getNWAssets(), nwDebts: DB.getNWDebts(), nwHistory: DB.getNWHistory(), exportedAt: new Date().toISOString(), version: '4.0' };
+  const data = { wallets: DB.getWallets(), settings: DB.getSettings(), obligations: DB.getObligations(), transactions: DB.getTransactions(), budgets: DB.getBudgets(), templates: DB.getTemplates(), goals: DB.getGoals(), recurring: DB.getRecurring(), nwAssets: DB.getNWAssets(), nwDebts: DB.getNWDebts(), nwHistory: DB.getNWHistory(), exportedAt: new Date().toISOString(), version: '1.0' };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = `mywallet-db-dump-${todayDateStr()}.json`; a.click();
