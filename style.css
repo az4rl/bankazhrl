@@ -1730,7 +1730,13 @@ select.form-input {
   .sidebar-overlay.visible { display: block; }
 
   .mobile-only { display: flex !important; }
-  #bottom-nav { display: flex; }
+  #bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
 
   #main-content { width: 100%; }
 
