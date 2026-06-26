@@ -617,6 +617,17 @@ img, svg { display: block; }
   background: var(--bg-base);
   position: relative;
   cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heatmap-date {
+  font-size: 10px;
+  color: var(--text-primary);
+  opacity: 0.3;
+  pointer-events: none;
+  font-weight: 600;
 }
 
 .heatmap-cell[data-info]:hover::after {
