@@ -1710,6 +1710,16 @@ select.form-input {
   to { opacity: 0; transform: translateX(100%); }
 }
 
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 199;
+  cursor: pointer;
+}
+.sidebar-overlay.visible { display: block; }
+
 @media (max-width: 768px) {
   :root {
     --sidebar-w: 240px;
@@ -1730,15 +1740,7 @@ select.form-input {
     box-shadow: 4px 0 24px rgba(0,0,0,0.4);
   }
 
-  .sidebar-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 199;
-  }
 
-  .sidebar-overlay.visible { display: block; }
 
   .mobile-only { display: flex !important; }
   #bottom-nav {
