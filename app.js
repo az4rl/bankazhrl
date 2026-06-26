@@ -279,7 +279,7 @@ function renderExpenseHeatmap() {
     const ratio = val / maxVal;
     const level = ratio === 0 ? 0 : ratio < 0.25 ? 1 : ratio < 0.5 ? 2 : ratio < 0.75 ? 3 : 4;
     const tip = val > 0 ? `Hari ${d}: ${formatRp(val, true)}` : `Hari ${d}: Tidak ada catatan`;
-    cells.push(`<div class="heatmap-cell legend-c${level}" data-info="${tip}"></div>`);
+    cells.push(`<div class="heatmap-cell legend-c${level}" data-info="${tip}"><span class="heatmap-date">${d}</span></div>`);
   }
   el.innerHTML = cells.join('');
 }
