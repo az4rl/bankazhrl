@@ -1,7 +1,7 @@
 const DB = {
   get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
   set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
-  getWallets() { const w = this.get('df_wallets'); if (!w || !Object.keys(w).length) return {}; return w; },
+  getWallets() { const w = this.get('df_wallets'); return (w && typeof w === 'object') ? w : {}; },
   getSettings() { return this.get('df_settings') || { targetBNI: 0, dailyLimit: 0, workDaysLeft: 0, totalWorkdays: 0, name: '' }; },
   getObligations() { return this.get('df_obligations') || []; },
   getTransactions() { return this.get('df_transactions') || []; },
@@ -66,17 +66,24 @@ function formatRp(n, compact = false) {
   const num = Math.abs(Number(n) || 0);
   if (compact && num >= 1000000) return (Number(n) < 0 ? '-' : '') + 'Rp' + (num / 1000000).toFixed(1).replace('.0', '') + 'jt';
   if (compact && num >= 1000) return (Number(n) < 0 ? '-' : '') + 'Rp' + (num / 1000).toFixed(0) + 'rb';
-  return (Number(n) < 0 ? '-Rp' : 'Rp') + Math.floor(Math.abs(Number(n) || 0)).toLocaleString('id-ID');
+  return (Number(n) < 0 ? '-Rp' : 'Rp') + Math.floor(num).toLocaleString('id-ID');
 }
 
-function parseRpInput(str) { return parseInt((str || '').replace(/[^\d]/g, ''), 10) || 0; }
+function parseRpInput(str) { 
+  const val = parseInt((str || '').toString().replace(/[^\d]/g, ''), 10);
+  return isNaN(val) ? 0 : val;
+}
 
 function formatInputRp(input) {
   const val = parseRpInput(input.value);
   input.value = val === 0 ? '' : val.toLocaleString('id-ID');
 }
 
-function todayDateStr() { return new Date().toISOString().split('T')[0]; }
+function todayDateStr() { 
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().split('T')[0];
+}
 
 function formatDate(str) {
   if (!str) return '';
@@ -87,7 +94,9 @@ function formatDateGroup(str) {
   if (!str) return '';
   const d = new Date(str + 'T00:00:00');
   const today = todayDateStr();
-  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+  const yesterday = new Date(); 
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setMinutes(yesterday.getMinutes() - yesterday.getTimezoneOffset());
   const yStr = yesterday.toISOString().split('T')[0];
   if (str === today) return 'Hari Ini';
   if (str === yStr) return 'Kemarin';
@@ -110,8 +119,6 @@ function slugify(name) {
 }
 
 function daysInMonth(year, month) { return new Date(year, month + 1, 0).getDate(); }
-
-function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
 
 function toast(msg, type = 'info') {
   const container = document.getElementById('toastContainer');
@@ -160,8 +167,9 @@ function computeDuitFree() {
   Object.keys(w).forEach(k => {
     const bal = Number(w[k] || 0);
     const m = meta[k] || {};
-    if (m.type === 'bank' && Number(m.target)) {
-      available += Math.max(0, bal - Number(m.target));
+    if (m.type === 'bank') {
+      const target = Number(m.target) || Number(s.targetBNI) || 0;
+      available += Math.max(0, bal - target);
     } else {
       available += bal;
     }
@@ -216,22 +224,24 @@ function computeHealthScore() {
     const ratio = duitFree / totalKewajiban;
     burnoutScore = ratio > 0.5 ? 25 : ratio > 0 ? Math.round(ratio * 50) : 0;
   }
-  const total = Math.min(100, savingScore + budgetScore + consistencyScore + burnoutScore);
+  const total = Math.min(100, Math.max(0, savingScore + budgetScore + consistencyScore + burnoutScore));
   return { total, savingScore, budgetScore, consistencyScore, burnoutScore, savingRate };
 }
 
 function renderHealthScore() {
-  const { total, savingScore, budgetScore, consistencyScore, burnoutScore, savingRate } = computeHealthScore();
+  const { total, budgetScore, consistencyScore, savingRate } = computeHealthScore();
   const numEl = document.getElementById('healthScoreNum');
   const arcEl = document.getElementById('healthScoreArc');
   const descEl = document.getElementById('healthScoreDesc');
   const breakEl = document.getElementById('healthScoreBreakdown');
   if (!numEl) return;
   numEl.textContent = total;
-  const circumference = 2 * Math.PI * 26;
-  const offset = circumference - (total / 100) * circumference;
-  arcEl.style.strokeDashoffset = offset;
-  arcEl.style.stroke = total >= 75 ? '#10b981' : total >= 50 ? '#f59e0b' : '#ef4444';
+  if (arcEl) {
+    const circumference = 2 * Math.PI * 26;
+    const offset = circumference - (total / 100) * circumference;
+    arcEl.style.strokeDashoffset = offset;
+    arcEl.style.stroke = total >= 75 ? '#10b981' : total >= 50 ? '#f59e0b' : '#ef4444';
+  }
   const label = total >= 80 ? 'Optimal' : total >= 60 ? 'Stabil' : total >= 40 ? 'Perlu Intervensi' : 'Kritis';
   if (descEl) descEl.textContent = label;
   if (breakEl) {
@@ -339,7 +349,7 @@ function recordRecurring(id) {
   if (r.type === 'expense' && (wallets[r.wallet] || 0) < r.amount) { toast('Alokasi sumber tidak mencukupi', 'warning'); return; }
   if (r.type === 'expense') wallets[r.wallet] -= r.amount;
   else wallets[r.wallet] = (wallets[r.wallet] || 0) + r.amount;
-  txs.push({ id: DB.generateId(), type: r.type, amount: r.amount, sourceWallet: r.wallet, destWallet: null, category: r.category || 'lainnya', note: r.name + ' (Sistematis)', date: todayDateStr() });
+  txs.push({ id: DB.generateId(), type: r.type, amount: r.amount, sourceWallet: r.wallet, destWallet: null, category: r.category || 'lainnya', note: r.name + ' (Sistematis)', date: todayDateStr(), tags: [] });
   DB.saveWallets(wallets);
   DB.saveTransactions(txs);
   toast(`Pencatatan atas ${r.name} tervalidasi`, 'success');
@@ -362,23 +372,24 @@ function renderDashboard() {
   document.getElementById('totalBalanceAmount').textContent = formatRp(totalBalance);
   document.getElementById('duitfreeAmount').textContent = formatRp(duitFree);
   const card = document.getElementById('duitfreeCard');
-  if (duitFree < 0) {
-    card.classList.add('minus');
-    document.getElementById('duitfreeStatus').textContent = 'Peringatan: Defisit Anggaran Tersistem';
-    const nd = document.getElementById('notifDot');
-    if (nd) nd.style.display = '';
-  } else {
-    card.classList.remove('minus');
-    document.getElementById('duitfreeStatus').textContent = duitFree === 0 ? 'Indeks Pasif' : 'Status Likuiditas Valid';
-    const nd = document.getElementById('notifDot');
-    if (nd) nd.style.display = 'none';
+  if (card) {
+    if (duitFree < 0) {
+      card.classList.add('minus');
+      document.getElementById('duitfreeStatus').textContent = 'Peringatan: Defisit Anggaran Tersistem';
+      const nd = document.getElementById('notifDot');
+      if (nd) nd.style.display = '';
+    } else {
+      card.classList.remove('minus');
+      document.getElementById('duitfreeStatus').textContent = duitFree === 0 ? 'Indeks Pasif' : 'Status Likuiditas Valid';
+      const nd = document.getElementById('notifDot');
+      if (nd) nd.style.display = 'none';
+    }
   }
   const wg = document.getElementById('walletsGrid');
   if (wg) {
     const meta = DB.getWalletMeta();
     wg.innerHTML = Object.keys(w).map(key => {
       const name = getWalletName(key);
-      const m = meta[key] || {};
       return `
         <div class="wallet-card">
           <div class="wallet-name"><span>${name}</span><i class="fa-solid fa-building-columns" style="opacity:0.3"></i></div>
@@ -1524,10 +1535,11 @@ function parseChatToTransactions(text) {
 
   for (let i = 0; i < parts.length; i++) {
     let p = parts[i].replace(/^rp/, '').replace(/^rps?/, '');
-    const m = p.match(/^(\d+(?:[\.,]\d+)?)(k?)$/);
+    const m = p.match(/^(\d+(?:[\.,]\d+)?)(k|rb|jt|m)?$/);
     if (m) {
       let num = parseFloat(m[1].replace(',', '.')) || 0;
-      if (m[2] === 'k') num *= 1000;
+      if (m[2] === 'k' || m[2] === 'rb') num *= 1000;
+      if (m[2] === 'jt' || m[2] === 'm') num *= 1000000;
       if (num < 100) continue;
       let nearbyWallets = [];
       for (let j = Math.max(0, i - 4); j <= Math.min(parts.length - 1, i + 4); j++) {
