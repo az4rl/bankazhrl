@@ -3,30 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0b121f">
+  <meta name="theme-color" content="#0b111d">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MyWallet">
-  <meta name="description" content="Sistem Manajemen Finansial Personal">
+  <meta name="description" content="Aplikasi manajemen keuangan pribadi">
   <title>MyWallet</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- PWA Install Bar -->
   <div id="pwa-install-bar" style="display:none">
     <i class="fa-solid fa-mobile-screen"></i>
-    <span>Instalasi Sistem Lokal</span>
-    <button id="pwa-install-btn">Instal</button>
-    <button id="pwa-dismiss-btn"><i class="fa-solid fa-xmark"></i></button>
+    <span>Pasang ke layar utama untuk akses lebih cepat</span>
+    <button id="pwa-install-btn" class="btn-install">Pasang</button>
+    <button id="pwa-dismiss-btn" class="btn-dismiss"><i class="fa-solid fa-xmark"></i></button>
   </div>
 
   <div id="app">
+    <!-- Sidebar Desktop -->
     <aside id="sidebar">
       <div class="sidebar-brand">
         <div class="brand-icon"><i class="fa-solid fa-wallet"></i></div>
@@ -34,114 +38,131 @@
       </div>
       <nav class="sidebar-nav">
         <a href="#" class="nav-item active" data-page="dashboard"><i class="fa-solid fa-chart-pie"></i><span>Dasbor</span></a>
-        <a href="#" class="nav-item" data-page="transactions"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Transaksional</span></a>
-        <a href="#" class="nav-item" data-page="history"><i class="fa-solid fa-clock-rotate-left"></i><span>Buku Besar</span></a>
+        <a href="#" class="nav-item" data-page="transactions"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Catat Transaksi</span></a>
+        <a href="#" class="nav-item" data-page="history"><i class="fa-solid fa-clock-rotate-left"></i><span>Riwayat</span></a>
         <a href="#" class="nav-item" data-page="calendar"><i class="fa-solid fa-calendar-days"></i><span>Kalender</span></a>
-        <a href="#" class="nav-item" data-page="budget"><i class="fa-solid fa-bullseye"></i><span>Alokasi Budget</span></a>
-        <a href="#" class="nav-item" data-page="goals"><i class="fa-solid fa-flag-checkered"></i><span>Target Finansial</span></a>
-        <a href="#" class="nav-item" data-page="recurring"><i class="fa-solid fa-rotate"></i><span>Beban Berulang</span></a>
+        <a href="#" class="nav-item" data-page="budget"><i class="fa-solid fa-bullseye"></i><span>Anggaran</span></a>
+        <a href="#" class="nav-item" data-page="goals"><i class="fa-solid fa-flag-checkered"></i><span>Target Tabungan</span></a>
+        <a href="#" class="nav-item" data-page="recurring"><i class="fa-solid fa-rotate"></i><span>Tagihan Rutin</span></a>
         <a href="#" class="nav-item" data-page="networth"><i class="fa-solid fa-scale-balanced"></i><span>Kekayaan Bersih</span></a>
-        <a href="#" class="nav-item" data-page="splitbill"><i class="fa-solid fa-people-group"></i><span>Proporsi Tagihan</span></a>
-        <a href="#" class="nav-item" data-page="cicilan"><i class="fa-solid fa-calculator"></i><span>Kalkulator Bunga</span></a>
-        <a href="#" class="nav-item" data-page="ai"><i class="fa-solid fa-microchip"></i><span>Analisis Sistem</span></a>
-        <a href="#" class="nav-item" data-page="settings"><i class="fa-solid fa-sliders"></i><span>Konfigurasi</span></a>
+        <a href="#" class="nav-item" data-page="splitbill"><i class="fa-solid fa-people-group"></i><span>Bagi Tagihan</span></a>
+        <a href="#" class="nav-item" data-page="cicilan"><i class="fa-solid fa-calculator"></i><span>Kalkulator Cicilan</span></a>
+        <a href="#" class="nav-item" data-page="ai"><i class="fa-solid fa-microchip"></i><span>Analisis AI</span></a>
+        <a href="#" class="nav-item" data-page="settings"><i class="fa-solid fa-sliders"></i><span>Pengaturan</span></a>
       </nav>
       <div class="sidebar-footer">
         <button id="themeToggleSidebar" class="theme-toggle-btn">
           <i class="fa-solid fa-moon" id="themeIconSidebar"></i>
-          <span id="themeTextSidebar">Tema Gelap</span>
+          <span id="themeTextSidebar">Mode Gelap</span>
         </button>
       </div>
     </aside>
 
+    <!-- Main Content -->
     <main id="main-content">
       <header id="topbar">
         <div class="topbar-left">
           <button id="mobileMenuBtn" class="icon-btn mobile-only"><i class="fa-solid fa-bars"></i></button>
-          <div class="topbar-title" id="pageTitle">Dasbor Utama</div>
+          <div class="topbar-title" id="pageTitle">Dasbor</div>
         </div>
         <div class="topbar-right">
           <button id="themeToggleTop" class="icon-btn"><i class="fa-solid fa-moon" id="themeIconTop"></i></button>
-          <button class="icon-btn" id="notifBtn">
+          <button class="icon-btn" id="notifBtn" aria-label="Notifikasi">
             <i class="fa-solid fa-bell"></i>
             <span class="notif-dot" id="notifDot" style="display:none"></span>
           </button>
         </div>
       </header>
 
+      <!-- ===== HALAMAN: DASBOR ===== -->
       <div id="page-dashboard" class="page active">
         <div class="page-inner">
+
           <div class="dash-header">
             <div class="dash-user-info">
               <div class="dash-date" id="currentDateDisplay"></div>
               <div class="dash-username" id="welcomeUser"></div>
             </div>
             <div class="dash-actions">
-              <button class="btn-secondary btn-sm" id="openTemplateModal"><i class="fa-solid fa-bolt"></i><span>Akses Cepat</span></button>
-              <button class="btn-primary" id="openTransactionModal"><i class="fa-solid fa-plus"></i><span>Entri</span></button>
+              <button class="btn-secondary btn-sm" id="openTemplateModal">
+                <i class="fa-solid fa-bolt"></i><span>Favorit</span>
+              </button>
+              <button class="btn-primary" id="openTransactionModal">
+                <i class="fa-solid fa-plus"></i><span>Tambah</span>
+              </button>
             </div>
           </div>
 
-          <div class="health-score-banner" id="healthScoreBanner">
+          <!-- Health Score -->
+          <div class="health-score-banner">
             <div class="health-score-left">
-              <div class="health-score-circle" id="healthScoreCircle">
-                <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3"/><circle cx="30" cy="30" r="26" fill="none" stroke="white" stroke-width="3" stroke-linecap="square" stroke-dasharray="163.36" stroke-dashoffset="163.36" id="healthScoreArc" transform="rotate(-90 30 30)"/></svg>
-                <span id="healthScoreNum">-</span>
+              <div class="health-score-circle">
+                <svg viewBox="0 0 60 60">
+                  <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+                  <circle cx="30" cy="30" r="26" fill="none" stroke="white" stroke-width="4"
+                    stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="163.36"
+                    id="healthScoreArc" transform="rotate(-90 30 30)"/>
+                </svg>
+                <span id="healthScoreNum">–</span>
               </div>
               <div>
-                <div class="health-score-label">Indeks Likuiditas</div>
-                <div class="health-score-desc" id="healthScoreDesc">Memproses Data</div>
+                <div class="health-score-label">Skor Keuangan</div>
+                <div class="health-score-desc" id="healthScoreDesc">Menghitung…</div>
               </div>
             </div>
             <div class="health-score-right" id="healthScoreBreakdown"></div>
           </div>
 
+          <!-- Kartu utama -->
           <div class="cards-grid">
             <div class="card card-duitfree" id="duitfreeCard">
-              <div class="card-label">Likuiditas Operasional</div>
+              <div class="card-label">Dana Tersedia</div>
               <div class="card-amount" id="duitfreeAmount">Rp0</div>
-              <div class="card-sublabel" id="duitfreeStatus">Memproses Status</div>
+              <div class="card-sublabel" id="duitfreeStatus">Memuat status…</div>
               <div class="card-icon-bg"><i class="fa-solid fa-money-bill-wave"></i></div>
             </div>
             <div class="card card-total">
-              <div class="card-label">Total Ekuivalen Kas</div>
+              <div class="card-label">Total Saldo</div>
               <div class="card-amount" id="totalBalanceAmount">Rp0</div>
-              <div class="card-sublabel">Agregat Dompet Sistem</div>
+              <div class="card-sublabel">Gabungan semua dompet</div>
               <div class="card-icon-bg"><i class="fa-solid fa-building-columns"></i></div>
             </div>
           </div>
 
+          <!-- Daftar dompet -->
           <div class="wallets-grid" id="walletsGrid"></div>
 
+          <!-- Siklus hari kerja & donut chart -->
           <div class="two-col-grid">
             <div class="card card-flat">
-              <div class="card-section-title"><i class="fa-solid fa-hourglass-half"></i>Siklus Operasional</div>
+              <div class="card-section-title"><i class="fa-solid fa-hourglass-half"></i>Sisa Hari Kerja</div>
               <div class="workday-display">
                 <span class="workday-number" id="workdaysLeftDisplay">0</span>
-                <span class="workday-unit">hari basis tersisa</span>
+                <span class="workday-unit">hari tersisa</span>
               </div>
               <div class="progress-bar-wrap"><div class="progress-bar" id="workdaysBar" style="width:0%"></div></div>
-              <div class="workday-sublabel">Parameter pengeluaran maksimum: <strong id="dailyLimitDisplay">Rp0</strong></div>
-              <div class="workday-sublabel">Batas utilisasi hari ini: <strong id="remainingDailyQuota">Rp0</strong></div>
-              <div class="workday-sublabel">Estimasi defisit: <strong id="burnoutPrediction">-</strong></div>
+              <div class="workday-sublabel">Batas pengeluaran harian: <strong id="dailyLimitDisplay">Rp0</strong></div>
+              <div class="workday-sublabel">Sisa kuota hari ini: <strong id="remainingDailyQuota">Rp0</strong></div>
+              <div class="workday-sublabel">Perkiraan dana habis: <strong id="burnoutPrediction">–</strong></div>
             </div>
             <div class="card card-flat">
-              <div class="card-section-title"><i class="fa-solid fa-chart-pie"></i>Distribusi Aset Kas</div>
+              <div class="card-section-title"><i class="fa-solid fa-chart-pie"></i>Sebaran Dompet</div>
               <div class="chart-wrap">
                 <canvas id="walletDonutChart"></canvas>
                 <div class="chart-center-label">
                   <div id="chartCenterVal">Rp0</div>
-                  <div>Agregat</div>
+                  <div>Total</div>
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- Heatmap pengeluaran -->
           <div class="card card-flat mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-grip"></i>Matriks Beban Periode Berjalan</div>
+            <div class="card-section-title"><i class="fa-solid fa-grip"></i>Intensitas Pengeluaran Bulan Ini</div>
             <div id="expenseHeatmap" class="heatmap-grid"></div>
             <div class="heatmap-legend">
-              <span>Minimal</span>
+              <span>Rendah</span>
               <div class="heatmap-legend-scale">
                 <div class="heatmap-cell legend-c0"></div>
                 <div class="heatmap-cell legend-c1"></div>
@@ -149,64 +170,83 @@
                 <div class="heatmap-cell legend-c3"></div>
                 <div class="heatmap-cell legend-c4"></div>
               </div>
-              <span>Maksimal</span>
+              <span>Tinggi</span>
             </div>
           </div>
 
-          <div class="card card-flat mb-16" id="dashGoalsSection">
-            <div class="card-section-title"><i class="fa-solid fa-flag-checkered"></i>Progres Target Finansial</div>
+          <!-- Target tabungan -->
+          <div class="card card-flat mb-16">
+            <div class="card-section-title"><i class="fa-solid fa-flag-checkered"></i>Target Tabungan</div>
             <div id="dashGoalsList"></div>
-            <button class="btn-ghost" data-page="goals" style="width:100%;margin-top:12px">Manajemen Target <i class="fa-solid fa-arrow-right"></i></button>
+            <button class="btn-ghost" data-page="goals" style="width:100%;margin-top:12px">
+              Kelola Target <i class="fa-solid fa-arrow-right"></i>
+            </button>
           </div>
 
+          <!-- Anggaran -->
           <div class="card card-flat mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-bars-progress"></i>Batas Alokasi Budget</div>
+            <div class="card-section-title"><i class="fa-solid fa-bars-progress"></i>Penggunaan Anggaran</div>
             <div id="dashboardBudgetBars"></div>
           </div>
 
-          <div class="card card-flat mb-16" id="dashRecurringSection">
-            <div class="card-section-title"><i class="fa-solid fa-arrows-spin"></i>Jadwal Beban Berulang</div>
+          <!-- Tagihan rutin -->
+          <div class="card card-flat mb-16">
+            <div class="card-section-title"><i class="fa-solid fa-arrows-spin"></i>Tagihan Rutin Mendatang</div>
             <div id="dashRecurringList"></div>
           </div>
 
+          <!-- Kewajiban -->
           <div class="card card-flat obligations-card mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-file-invoice"></i>Status Kewajiban Tetap</div>
+            <div class="card-section-title"><i class="fa-solid fa-file-invoice"></i>Kewajiban Bulanan</div>
             <div id="obligationsList" class="obligations-list"></div>
             <div class="obligations-footer">
-              <span>Beban belum diselesaikan:</span>
+              <span>Belum dibayar:</span>
               <strong id="totalObligationsUnpaid">Rp0</strong>
             </div>
           </div>
 
+          <!-- Transaksi terbaru -->
           <div class="card card-flat">
-            <div class="card-section-title"><i class="fa-solid fa-clock-rotate-left"></i>Log Transaksi Terakhir</div>
+            <div class="card-section-title"><i class="fa-solid fa-clock-rotate-left"></i>Transaksi Terakhir</div>
             <div id="recentTransactions" class="recent-list"></div>
-            <button class="btn-ghost view-all-btn" data-page="history">Buka Buku Besar <i class="fa-solid fa-arrow-right"></i></button>
+            <button class="btn-ghost view-all-btn" data-page="history">
+              Lihat Semua Riwayat <i class="fa-solid fa-arrow-right"></i>
+            </button>
           </div>
+
         </div>
       </div>
 
+      <!-- ===== HALAMAN: CATAT TRANSAKSI ===== -->
       <div id="page-transactions" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Proses Entri Transaksional</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Catat Transaksi</h2></div>
           <div class="template-scroll" id="quickTemplateBar"></div>
           <div class="transaction-type-tabs">
-            <button class="type-tab active" data-type="expense"><i class="fa-solid fa-arrow-up"></i>Arus Keluar</button>
-            <button class="type-tab" data-type="income"><i class="fa-solid fa-arrow-down"></i>Arus Masuk</button>
-            <button class="type-tab" data-type="transfer"><i class="fa-solid fa-arrow-right-arrow-left"></i>Transfer</button>
+            <button class="type-tab active" data-type="expense">
+              <i class="fa-solid fa-arrow-up"></i>Pengeluaran
+            </button>
+            <button class="type-tab" data-type="income">
+              <i class="fa-solid fa-arrow-down"></i>Pemasukan
+            </button>
+            <button class="type-tab" data-type="transfer">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>Transfer
+            </button>
           </div>
           <div class="card card-flat transaction-form-card">
             <form id="transactionForm">
               <div class="form-group">
-                <label class="form-label">Basis Nominal</label>
+                <label class="form-label">Jumlah</label>
                 <div class="amount-input-wrap">
                   <span class="currency-prefix">Rp</span>
-                  <input type="text" id="txAmount" class="form-input amount-input" placeholder="0" inputmode="numeric" required>
+                  <input type="text" id="txAmount" class="form-input amount-input"
+                    placeholder="0" inputmode="numeric" required>
                 </div>
               </div>
+              <!-- Konversi mata uang (tersembunyi secara default) -->
               <div class="form-row" id="currencyConvertRow" style="display:none">
                 <div class="form-group">
-                  <label class="form-label">Basis Valuta Asing</label>
+                  <label class="form-label">Mata Uang Asal</label>
                   <select id="txCurrency" class="form-input">
                     <option value="IDR">IDR</option>
                     <option value="USD">USD</option>
@@ -217,84 +257,100 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Nilai Ekuivalen IDR</label>
-                  <div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="txConvertedAmount" class="form-input amount-input" placeholder="0" readonly></div>
+                  <label class="form-label">Setara Rupiah</label>
+                  <div class="amount-input-wrap">
+                    <span class="currency-prefix">Rp</span>
+                    <input type="text" id="txConvertedAmount" class="form-input amount-input"
+                      placeholder="0" readonly>
+                  </div>
                 </div>
               </div>
               <div class="form-group">
-                <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
-                  <input type="checkbox" id="enableCurrencyConvert" style="margin:0">
-                  <span>Modus Konversi Valuta</span>
+                <label class="form-label checkbox-label">
+                  <input type="checkbox" id="enableCurrencyConvert">
+                  <span>Konversi mata uang asing</span>
                 </label>
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Tanggal Efektif</label>
+                  <label class="form-label">Tanggal</label>
                   <input type="date" id="txDate" class="form-input" required>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" id="sourceWalletLabel">Akun Sumber</label>
+                  <label class="form-label" id="sourceWalletLabel">Dompet</label>
                   <select id="txSourceWallet" class="form-input"></select>
                 </div>
               </div>
               <div class="form-group" id="destWalletGroup" style="display:none">
-                <label class="form-label">Akun Tujuan Mutasi</label>
+                <label class="form-label">Dompet Tujuan</label>
                 <select id="txDestWallet" class="form-input"></select>
               </div>
               <div class="form-group" id="categoryGroup">
-                <label class="form-label">Klasifikasi Kategori</label>
+                <label class="form-label">Kategori</label>
                 <div class="category-grid" id="categoryGrid"></div>
               </div>
               <div class="form-group">
-                <label class="form-label">Indikator Referensi (Tag)</label>
-                <input type="text" id="txTags" class="form-input" placeholder="Gunakan sintaks #tag">
+                <label class="form-label">Tanda (Tag)</label>
+                <input type="text" id="txTags" class="form-input" placeholder="contoh: #makan #kantor">
               </div>
               <div class="form-group">
-                <label class="form-label">Data Keterangan Lengkap</label>
-                <input type="text" id="txNote" class="form-input" placeholder="Deskripsi spesifik">
+                <label class="form-label">Keterangan</label>
+                <input type="text" id="txNote" class="form-input" placeholder="Catatan opsional">
               </div>
               <div class="form-group" id="saveTemplateGroup">
-                <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
-                  <input type="checkbox" id="saveAsTemplate" style="margin:0">
-                  <span>Inisiasi Sebagai Template</span>
+                <label class="form-label checkbox-label">
+                  <input type="checkbox" id="saveAsTemplate">
+                  <span>Simpan sebagai favorit</span>
                 </label>
-                <input type="text" id="templateName" class="form-input" placeholder="Identifikasi template" style="margin-top:8px;display:none">
+                <input type="text" id="templateName" class="form-input"
+                  placeholder="Nama favorit" style="margin-top:8px;display:none">
               </div>
-              <button type="submit" class="btn-primary btn-full"><i class="fa-solid fa-check"></i>Catat Eksekusi</button>
+              <button type="submit" class="btn-primary btn-full">
+                <i class="fa-solid fa-check"></i>Simpan Transaksi
+              </button>
             </form>
           </div>
         </div>
       </div>
 
+      <!-- ===== HALAMAN: RIWAYAT ===== -->
       <div id="page-history" class="page">
         <div class="page-inner">
           <div class="page-header-row">
-            <h2 class="page-title">Buku Besar Transaksional</h2>
-            <button class="btn-secondary btn-sm" id="exportPDFBtn"><i class="fa-solid fa-download"></i>Laporan</button>
+            <h2 class="page-title">Riwayat Transaksi</h2>
+            <button class="btn-secondary btn-sm" id="exportPDFBtn">
+              <i class="fa-solid fa-download"></i>Laporan
+            </button>
           </div>
           <div class="filter-row">
             <select id="filterMonth" class="form-input filter-select"></select>
-            <select id="filterWallet" class="form-input filter-select"><option value="">Semua Akun</option></select>
-            <select id="filterType" class="form-input filter-select">
-              <option value="">Semua Klasifikasi</option>
-              <option value="expense">Arus Keluar</option>
-              <option value="income">Arus Masuk</option>
-              <option value="transfer">Mutasi Transfer</option>
+            <select id="filterWallet" class="form-input filter-select">
+              <option value="">Semua Dompet</option>
             </select>
-            <select id="filterCat" class="form-input filter-select"><option value="">Semua Kategori</option></select>
+            <select id="filterType" class="form-input filter-select">
+              <option value="">Semua Jenis</option>
+              <option value="expense">Pengeluaran</option>
+              <option value="income">Pemasukan</option>
+              <option value="transfer">Transfer</option>
+            </select>
+            <select id="filterCat" class="form-input filter-select">
+              <option value="">Semua Kategori</option>
+            </select>
           </div>
           <div class="search-bar-wrap mb-16">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" id="searchQuery" class="form-input search-input" placeholder="Kueri pencarian data...">
+            <input type="text" id="searchQuery" class="form-input search-input"
+              placeholder="Cari catatan, jumlah, atau kategori…">
           </div>
           <div id="historyStats" class="history-stats-row"></div>
           <div id="historyList" class="history-list"></div>
         </div>
       </div>
 
+      <!-- ===== HALAMAN: KALENDER ===== -->
       <div id="page-calendar" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Penjadwalan Log</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Kalender Transaksi</h2></div>
           <div class="card card-flat mb-16">
             <div class="calendar-nav">
               <button class="icon-btn" id="calPrev"><i class="fa-solid fa-chevron-left"></i></button>
@@ -303,126 +359,193 @@
             </div>
             <div class="calendar-grid" id="calendarGrid"></div>
             <div class="calendar-legend">
-              <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Arus Masuk</div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Arus Keluar</div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Mutasi</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Pemasukan</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Pengeluaran</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Transfer</div>
             </div>
           </div>
           <div class="card card-flat">
-            <div class="card-section-title"><i class="fa-solid fa-list"></i>Registri Harian</div>
+            <div class="card-section-title"><i class="fa-solid fa-list"></i>Transaksi Tanggal Ini</div>
             <div id="calDayDetail" class="recent-list"></div>
           </div>
         </div>
       </div>
 
+      <!-- ===== HALAMAN: ANGGARAN ===== -->
       <div id="page-budget" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Pembatasan Alokasi</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Batas Anggaran</h2></div>
           <div class="card card-flat mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-sliders"></i>Konfigurasi Batas</div>
+            <div class="card-section-title"><i class="fa-solid fa-sliders"></i>Tambah Batas</div>
             <div class="budget-form">
               <select id="budgetCatSelect" class="form-input"></select>
-              <div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="budgetAmount" class="form-input amount-input" placeholder="0" inputmode="numeric"></div>
-              <button class="btn-primary" id="saveBudget">Terapkan</button>
+              <div class="amount-input-wrap">
+                <span class="currency-prefix">Rp</span>
+                <input type="text" id="budgetAmount" class="form-input amount-input"
+                  placeholder="0" inputmode="numeric">
+              </div>
+              <button class="btn-primary" id="saveBudget">Simpan</button>
             </div>
           </div>
           <div id="budgetList" class="budget-list"></div>
           <div class="card card-flat mt-16">
-            <div class="card-section-title"><i class="fa-solid fa-chart-column"></i>Analisis Penggunaan Limit</div>
+            <div class="card-section-title"><i class="fa-solid fa-chart-column"></i>Grafik Penggunaan Anggaran</div>
             <div style="height:220px;position:relative"><canvas id="budgetChart"></canvas></div>
           </div>
         </div>
       </div>
 
+      <!-- ===== HALAMAN: TARGET ===== -->
       <div id="page-goals" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Proyeksi Target Finansial</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Target Tabungan</h2></div>
           <div class="card card-flat mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-plus"></i>Parameter Target Baru</div>
+            <div class="card-section-title"><i class="fa-solid fa-plus"></i>Tambah Target Baru</div>
             <div class="settings-form">
               <div class="form-row">
-                <div class="form-group"><label class="form-label">Identifikasi Target</label><input type="text" id="goalName" class="form-input" placeholder="Label entitas"></div>
-                <div class="form-group"><label class="form-label">Batas Capaian (Nominal)</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="goalTarget" class="form-input amount-input" placeholder="0" inputmode="numeric"></div></div>
+                <div class="form-group">
+                  <label class="form-label">Nama Target</label>
+                  <input type="text" id="goalName" class="form-input" placeholder="contoh: Dana Darurat">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Jumlah Target</label>
+                  <div class="amount-input-wrap">
+                    <span class="currency-prefix">Rp</span>
+                    <input type="text" id="goalTarget" class="form-input amount-input"
+                      placeholder="0" inputmode="numeric">
+                  </div>
+                </div>
               </div>
               <div class="form-row">
-                <div class="form-group"><label class="form-label">Tenggat Realisasi</label><input type="date" id="goalDeadline" class="form-input"></div>
-                <div class="form-group"><label class="form-label">Alokasi Awal Tersedia</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="goalCurrent" class="form-input amount-input" placeholder="0" inputmode="numeric"></div></div>
+                <div class="form-group">
+                  <label class="form-label">Tenggat Waktu</label>
+                  <input type="date" id="goalDeadline" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Dana Awal</label>
+                  <div class="amount-input-wrap">
+                    <span class="currency-prefix">Rp</span>
+                    <input type="text" id="goalCurrent" class="form-input amount-input"
+                      placeholder="0" inputmode="numeric">
+                  </div>
+                </div>
               </div>
-              <button class="btn-primary" id="saveGoal"><i class="fa-solid fa-check"></i>Inisialisasi Target</button>
+              <button class="btn-primary" id="saveGoal">
+                <i class="fa-solid fa-check"></i>Buat Target
+              </button>
             </div>
           </div>
           <div id="goalsList" class="goals-list"></div>
         </div>
       </div>
 
+      <!-- ===== HALAMAN: TAGIHAN RUTIN ===== -->
       <div id="page-recurring" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Manajemen Beban Berulang</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Tagihan Rutin</h2></div>
           <div class="card card-flat mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-plus"></i>Registrasi Jadwal Baru</div>
+            <div class="card-section-title"><i class="fa-solid fa-plus"></i>Tambah Tagihan Rutin</div>
             <div class="settings-form">
               <div class="form-row">
-                <div class="form-group"><label class="form-label">Identifikasi</label><input type="text" id="recurName" class="form-input" placeholder="Label entri"></div>
-                <div class="form-group"><label class="form-label">Klasifikasi</label>
+                <div class="form-group">
+                  <label class="form-label">Nama Tagihan</label>
+                  <input type="text" id="recurName" class="form-input" placeholder="contoh: Spotify, Listrik">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Jenis</label>
                   <select id="recurType" class="form-input">
-                    <option value="expense">Arus Keluar</option>
-                    <option value="income">Arus Masuk</option>
+                    <option value="expense">Pengeluaran</option>
+                    <option value="income">Pemasukan</option>
                   </select>
                 </div>
               </div>
               <div class="form-row">
-                <div class="form-group"><label class="form-label">Nominal Baku</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="recurAmount" class="form-input amount-input" placeholder="0" inputmode="numeric"></div></div>
-                <div class="form-group"><label class="form-label">Indikator Siklus (Tanggal)</label><input type="number" id="recurDay" class="form-input" placeholder="1-31" min="1" max="31"></div>
+                <div class="form-group">
+                  <label class="form-label">Jumlah</label>
+                  <div class="amount-input-wrap">
+                    <span class="currency-prefix">Rp</span>
+                    <input type="text" id="recurAmount" class="form-input amount-input"
+                      placeholder="0" inputmode="numeric">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tanggal Jatuh Tempo</label>
+                  <input type="number" id="recurDay" class="form-input"
+                    placeholder="1–31" min="1" max="31">
+                </div>
               </div>
               <div class="form-row">
-                <div class="form-group"><label class="form-label">Kategori Spesifik</label><select id="recurCategory" class="form-input"></select></div>
-                <div class="form-group"><label class="form-label">Akun Pemrosesan</label><select id="recurWallet" class="form-input"></select></div>
+                <div class="form-group">
+                  <label class="form-label">Kategori</label>
+                  <select id="recurCategory" class="form-input"></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Dompet</label>
+                  <select id="recurWallet" class="form-input"></select>
+                </div>
               </div>
-              <button class="btn-primary" id="saveRecurring"><i class="fa-solid fa-check"></i>Daftarkan Siklus</button>
+              <button class="btn-primary" id="saveRecurring">
+                <i class="fa-solid fa-check"></i>Tambahkan
+              </button>
             </div>
           </div>
           <div id="recurringList"></div>
         </div>
       </div>
 
+      <!-- ===== HALAMAN: KEKAYAAN BERSIH ===== -->
       <div id="page-networth" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Kalkulasi Kekayaan Bersih</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Kekayaan Bersih</h2></div>
           <div class="cards-grid mb-16">
             <div class="card card-flat" style="text-align:center">
-              <div class="card-label">Agregat Aset Positif</div>
+              <div class="card-label">Total Aset</div>
               <div class="card-amount" id="nwTotalAsset" style="color:var(--green);font-size:18px">Rp0</div>
             </div>
             <div class="card card-flat" style="text-align:center">
-              <div class="card-label">Agregat Kewajiban (Liabilitas)</div>
+              <div class="card-label">Total Hutang</div>
               <div class="card-amount" id="nwTotalDebt" style="color:var(--red);font-size:18px">Rp0</div>
             </div>
           </div>
           <div class="card card-duitfree mb-16" style="text-align:center">
-            <div class="card-label">Nilai Net Worth Aktual</div>
+            <div class="card-label">Kekayaan Bersih</div>
             <div class="card-amount" id="nwNetWorth" style="font-size:24px">Rp0</div>
-            <div class="card-sublabel" id="nwStatus">Memproses Analisis Ekuitas</div>
+            <div class="card-sublabel" id="nwStatus">Menghitung…</div>
           </div>
           <div class="card card-flat mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-chart-area"></i>Rekam Jejak Historis Net Worth</div>
+            <div class="card-section-title"><i class="fa-solid fa-chart-area"></i>Riwayat Kekayaan Bersih</div>
             <div style="height:200px;position:relative"><canvas id="networthChart"></canvas></div>
           </div>
           <div class="two-col-grid">
             <div class="card card-flat">
-              <div class="card-section-title"><i class="fa-solid fa-plus"></i>Registrasi Aset Eksternal</div>
+              <div class="card-section-title"><i class="fa-solid fa-plus"></i>Tambah Aset</div>
               <div class="settings-form" style="gap:10px">
-                <input type="text" id="nwAssetName" class="form-input" placeholder="Label komoditas/properti">
-                <div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="nwAssetValue" class="form-input amount-input" placeholder="0" inputmode="numeric"></div>
-                <button class="btn-primary btn-sm" id="addNwAsset"><i class="fa-solid fa-check"></i>Integrasikan Aset</button>
+                <input type="text" id="nwAssetName" class="form-input"
+                  placeholder="contoh: Kendaraan, Properti">
+                <div class="amount-input-wrap">
+                  <span class="currency-prefix">Rp</span>
+                  <input type="text" id="nwAssetValue" class="form-input amount-input"
+                    placeholder="0" inputmode="numeric">
+                </div>
+                <button class="btn-primary btn-sm" id="addNwAsset">
+                  <i class="fa-solid fa-check"></i>Tambah Aset
+                </button>
                 <div id="nwAssetList"></div>
               </div>
             </div>
             <div class="card card-flat">
-              <div class="card-section-title"><i class="fa-solid fa-minus"></i>Registrasi Beban Liabilitas</div>
+              <div class="card-section-title"><i class="fa-solid fa-minus"></i>Tambah Hutang</div>
               <div class="settings-form" style="gap:10px">
-                <input type="text" id="nwDebtName" class="form-input" placeholder="Label kredit/pinjaman">
-                <div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="nwDebtValue" class="form-input amount-input" placeholder="0" inputmode="numeric"></div>
-                <button class="btn-primary btn-sm" id="addNwDebt"><i class="fa-solid fa-check"></i>Integrasikan Liabilitas</button>
+                <input type="text" id="nwDebtName" class="form-input"
+                  placeholder="contoh: KPR, Kartu Kredit">
+                <div class="amount-input-wrap">
+                  <span class="currency-prefix">Rp</span>
+                  <input type="text" id="nwDebtValue" class="form-input amount-input"
+                    placeholder="0" inputmode="numeric">
+                </div>
+                <button class="btn-primary btn-sm" id="addNwDebt">
+                  <i class="fa-solid fa-check"></i>Tambah Hutang
+                </button>
                 <div id="nwDebtList"></div>
               </div>
             </div>
@@ -430,319 +553,732 @@
         </div>
       </div>
 
+      <!-- ===== HALAMAN: BAGI TAGIHAN ===== -->
       <div id="page-splitbill" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Pembagian Proporsi Tagihan</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Bagi Tagihan</h2></div>
           <div class="card card-flat mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-receipt"></i>Atribut Beban</div>
+            <div class="card-section-title"><i class="fa-solid fa-receipt"></i>Detail Tagihan</div>
             <div class="settings-form">
               <div class="form-row">
-                <div class="form-group"><label class="form-label">Deskripsi Operasional</label><input type="text" id="splitTitle" class="form-input" placeholder="Label tagihan"></div>
-                <div class="form-group"><label class="form-label">Nominal Kotor Induk</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="splitTotal" class="form-input amount-input" placeholder="0" inputmode="numeric"></div></div>
+                <div class="form-group">
+                  <label class="form-label">Nama Tagihan</label>
+                  <input type="text" id="splitTitle" class="form-input"
+                    placeholder="contoh: Makan malam bareng">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Total Tagihan</label>
+                  <div class="amount-input-wrap">
+                    <span class="currency-prefix">Rp</span>
+                    <input type="text" id="splitTotal" class="form-input amount-input"
+                      placeholder="0" inputmode="numeric">
+                  </div>
+                </div>
               </div>
               <div class="form-row">
-                <div class="form-group"><label class="form-label">Faktor Reduksi (Diskon)</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="splitDiscount" class="form-input amount-input" placeholder="0" inputmode="numeric"></div></div>
-                <div class="form-group"><label class="form-label">Komponen Pajak (%)</label><input type="number" id="splitTax" class="form-input" placeholder="11" step="0.1" min="0"></div>
+                <div class="form-group">
+                  <label class="form-label">Diskon</label>
+                  <div class="amount-input-wrap">
+                    <span class="currency-prefix">Rp</span>
+                    <input type="text" id="splitDiscount" class="form-input amount-input"
+                      placeholder="0" inputmode="numeric">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Pajak (%)</label>
+                  <input type="number" id="splitTax" class="form-input"
+                    placeholder="contoh: 11" step="0.1" min="0">
+                </div>
               </div>
             </div>
           </div>
           <div class="card card-flat mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-users"></i>Daftar Subjek Beban</div>
+            <div class="card-section-title"><i class="fa-solid fa-users"></i>Peserta</div>
             <div id="splitPersonList" style="margin-bottom:12px"></div>
             <div style="display:flex;gap:8px">
-              <input type="text" id="splitPersonName" class="form-input" placeholder="Identitas subjek">
-              <button class="btn-primary btn-sm" id="addSplitPerson"><i class="fa-solid fa-user-plus"></i></button>
+              <input type="text" id="splitPersonName" class="form-input"
+                placeholder="Nama peserta">
+              <button class="btn-primary btn-sm" id="addSplitPerson">
+                <i class="fa-solid fa-user-plus"></i>
+              </button>
             </div>
           </div>
-          <button class="btn-primary btn-full" id="calculateSplit"><i class="fa-solid fa-calculator"></i>Proses Kalkulasi</button>
+          <button class="btn-primary btn-full" id="calculateSplit">
+            <i class="fa-solid fa-calculator"></i>Hitung Pembagian
+          </button>
           <div id="splitResult" style="display:none;margin-top:16px"></div>
         </div>
       </div>
 
+      <!-- ===== HALAMAN: KALKULATOR CICILAN ===== -->
       <div id="page-cicilan" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Kalkulator Amortisasi</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Kalkulator Cicilan</h2></div>
           <div class="card card-flat mb-16">
-            <div class="card-section-title"><i class="fa-solid fa-sliders"></i>Konfigurasi Instrumen</div>
+            <div class="card-section-title"><i class="fa-solid fa-sliders"></i>Parameter Pinjaman</div>
             <div class="cicilan-form">
-              <div class="form-group"><label class="form-label">Beban Pokok Agregat</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="cicilanPokok" class="form-input amount-input" placeholder="0" inputmode="numeric"></div></div>
-              <div class="form-row">
-                <div class="form-group"><label class="form-label">Alokasi Kas Awal (DP)</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="cicilanDP" class="form-input amount-input" placeholder="0" inputmode="numeric"></div></div>
-                <div class="form-group"><label class="form-label">Rasio Bunga Tahunan (%)</label><input type="number" id="cicilanBunga" class="form-input" placeholder="12" step="0.1"></div>
-              </div>
-              <div class="form-row">
-                <div class="form-group"><label class="form-label">Periode Waktu (Bulan)</label><input type="number" id="cicilanTenor" class="form-input" placeholder="12"></div>
-                <div class="form-group"><label class="form-label">Skema Kalkulasi</label>
-                  <select id="cicilanTipe" class="form-input"><option value="flat">Eksponensial Flat</option><option value="efektif">Anuitas Efektif</option></select>
+              <div class="form-group">
+                <label class="form-label">Harga / Nilai Pinjaman</label>
+                <div class="amount-input-wrap">
+                  <span class="currency-prefix">Rp</span>
+                  <input type="text" id="cicilanPokok" class="form-input amount-input"
+                    placeholder="0" inputmode="numeric">
                 </div>
               </div>
-              <button class="btn-primary btn-full" id="hitungCicilan"><i class="fa-solid fa-gears"></i>Jalankan Simulasi</button>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Uang Muka (DP)</label>
+                  <div class="amount-input-wrap">
+                    <span class="currency-prefix">Rp</span>
+                    <input type="text" id="cicilanDP" class="form-input amount-input"
+                      placeholder="0" inputmode="numeric">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Bunga per Tahun (%)</label>
+                  <input type="number" id="cicilanBunga" class="form-input"
+                    placeholder="contoh: 12" step="0.1">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Tenor (Bulan)</label>
+                  <input type="number" id="cicilanTenor" class="form-input" placeholder="contoh: 24">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Metode Bunga</label>
+                  <select id="cicilanTipe" class="form-input">
+                    <option value="flat">Bunga Flat</option>
+                    <option value="efektif">Bunga Efektif (Anuitas)</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn-primary btn-full" id="hitungCicilan">
+                <i class="fa-solid fa-gears"></i>Hitung Cicilan
+              </button>
             </div>
           </div>
           <div id="cicilanResult" style="display:none">
             <div class="cards-grid mb-16">
-              <div class="card card-flat"><div class="card-label">Kewajiban Periodik</div><div class="card-amount" id="cicilanPerBulan" style="font-size:18px;color:var(--accent-light)"></div></div>
-              <div class="card card-flat"><div class="card-label">Akumulasi Seluruh Biaya</div><div class="card-amount" id="cicilanTotal" style="font-size:18px"></div></div>
+              <div class="card card-flat">
+                <div class="card-label">Cicilan per Bulan</div>
+                <div class="card-amount" id="cicilanPerBulan"
+                  style="font-size:18px;color:var(--accent-light)"></div>
+              </div>
+              <div class="card card-flat">
+                <div class="card-label">Total yang Dibayar</div>
+                <div class="card-amount" id="cicilanTotal" style="font-size:18px"></div>
+              </div>
             </div>
             <div class="card card-flat mb-16">
-              <div class="card-section-title"><i class="fa-solid fa-table-list"></i>Buku Jadwal Pelunasan</div>
+              <div class="card-section-title"><i class="fa-solid fa-table-list"></i>Jadwal Cicilan</div>
               <div class="amortization-table-wrap">
                 <table class="amortization-table" id="amortizationTable">
-                  <thead><tr><th>P.</th><th>Kewajiban</th><th>Reduksi Pokok</th><th>Beban Bunga</th><th>Sisa Residu</th></tr></thead>
+                  <thead>
+                    <tr>
+                      <th>Bulan</th><th>Cicilan</th><th>Pokok</th>
+                      <th>Bunga</th><th>Sisa</th>
+                    </tr>
+                  </thead>
                   <tbody></tbody>
                 </table>
               </div>
             </div>
-            <div class="card card-flat"><div class="card-section-title"><i class="fa-solid fa-chart-line"></i>Kurva Penurunan Residu</div><div style="height:200px;position:relative"><canvas id="cicilanChart"></canvas></div></div>
+            <div class="card card-flat">
+              <div class="card-section-title"><i class="fa-solid fa-chart-line"></i>Grafik Sisa Hutang</div>
+              <div style="height:200px;position:relative"><canvas id="cicilanChart"></canvas></div>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- ===== HALAMAN: ANALISIS AI ===== -->
       <div id="page-ai" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Operasi Pemrosesan AI</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Analisis AI</h2></div>
           <div class="ai-prompts-grid">
-            <div class="ai-prompt-card" data-prompt="summary"><div class="ai-prompt-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div><div class="ai-prompt-title">Pemetaan Eksekutif</div><div class="ai-prompt-desc">Ringkasan kondisi metrik kuantitatif periode aktif.</div></div>
-            <div class="ai-prompt-card" data-prompt="predict"><div class="ai-prompt-icon"><i class="fa-solid fa-chart-line"></i></div><div class="ai-prompt-title">Kalkulasi Proyeksi</div><div class="ai-prompt-desc">Algoritma estimasi sisa nilai cadangan akun.</div></div>
-            <div class="ai-prompt-card" data-prompt="tips"><div class="ai-prompt-icon"><i class="fa-solid fa-shield"></i></div><div class="ai-prompt-title">Protokol Efisiensi</div><div class="ai-prompt-desc">Simulasi tindakan untuk mereduksi inefisiensi beban.</div></div>
-            <div class="ai-prompt-card" data-prompt="anomaly"><div class="ai-prompt-icon"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="ai-prompt-title">Inspeksi Penyimpangan</div><div class="ai-prompt-desc">Identifikasi pola deviasi dari tren logik sistem.</div></div>
-            <div class="ai-prompt-card" data-prompt="cashflow"><div class="ai-prompt-icon"><i class="fa-solid fa-money-bill-transfer"></i></div><div class="ai-prompt-title">Audit Arus Modal</div><div class="ai-prompt-desc">Kajian struktur pendanaan triwulanan terakhir.</div></div>
-            <div class="ai-prompt-card" data-prompt="goal"><div class="ai-prompt-icon"><i class="fa-solid fa-bullseye"></i></div><div class="ai-prompt-title">Uji Stres Target</div><div class="ai-prompt-desc">Penilaian probabilitas validitas dan realisasi tujuan.</div></div>
+            <div class="ai-prompt-card" data-prompt="summary">
+              <div class="ai-prompt-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+              <div class="ai-prompt-title">Ringkasan Keuangan</div>
+              <div class="ai-prompt-desc">Ikhtisar kondisi keuangan bulan ini.</div>
+            </div>
+            <div class="ai-prompt-card" data-prompt="predict">
+              <div class="ai-prompt-icon"><i class="fa-solid fa-chart-line"></i></div>
+              <div class="ai-prompt-title">Proyeksi Dana</div>
+              <div class="ai-prompt-desc">Perkiraan sisa dana hingga akhir bulan.</div>
+            </div>
+            <div class="ai-prompt-card" data-prompt="tips">
+              <div class="ai-prompt-icon"><i class="fa-solid fa-shield"></i></div>
+              <div class="ai-prompt-title">Saran Hemat</div>
+              <div class="ai-prompt-desc">Rekomendasi untuk mengurangi pengeluaran.</div>
+            </div>
+            <div class="ai-prompt-card" data-prompt="anomaly">
+              <div class="ai-prompt-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div class="ai-prompt-title">Deteksi Anomali</div>
+              <div class="ai-prompt-desc">Identifikasi pengeluaran tidak wajar.</div>
+            </div>
+            <div class="ai-prompt-card" data-prompt="cashflow">
+              <div class="ai-prompt-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+              <div class="ai-prompt-title">Arus Kas 3 Bulan</div>
+              <div class="ai-prompt-desc">Analisis tren pemasukan dan pengeluaran.</div>
+            </div>
+            <div class="ai-prompt-card" data-prompt="goal">
+              <div class="ai-prompt-icon"><i class="fa-solid fa-bullseye"></i></div>
+              <div class="ai-prompt-title">Evaluasi Target</div>
+              <div class="ai-prompt-desc">Penilaian ketercapaian target tabungan.</div>
+            </div>
           </div>
           <div class="ai-custom-section card card-flat mt-16">
-            <div class="card-section-title"><i class="fa-solid fa-terminal"></i>Terminal Kueri Kustom</div>
+            <div class="card-section-title"><i class="fa-solid fa-terminal"></i>Pertanyaan Kustom</div>
             <div class="ai-input-row">
-              <input type="text" id="aiCustomPrompt" class="form-input" placeholder="Masukkan instruksi khusus atau parameter spesifik">
+              <input type="text" id="aiCustomPrompt" class="form-input"
+                placeholder="Tulis pertanyaan khusus tentang keuangan Anda…">
               <button class="btn-primary" id="aiCustomSend"><i class="fa-solid fa-play"></i></button>
             </div>
           </div>
           <div id="aiResultSection" style="display:none;margin-top:16px">
             <div class="card card-flat">
-              <div class="card-section-title"><i class="fa-solid fa-microchip"></i>Protokol Respons Sistem</div>
-              <div id="aiLoadingIndicator" style="display:none" class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div><span>Sinkronisasi Node Neural AI Berlangsung</span></div>
+              <div class="card-section-title"><i class="fa-solid fa-microchip"></i>Hasil Analisis</div>
+              <div id="aiLoadingIndicator" style="display:none" class="ai-loading">
+                <div class="ai-dots"><span></span><span></span><span></span></div>
+                <span>AI sedang menganalisis data Anda…</span>
+              </div>
               <div id="aiResultContent" class="ai-result-content"></div>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- ===== HALAMAN: PENGATURAN ===== -->
       <div id="page-settings" class="page">
         <div class="page-inner">
-          <div class="page-header-row"><h2 class="page-title">Konfigurasi Inti Sistem</h2></div>
+          <div class="page-header-row"><h2 class="page-title">Pengaturan</h2></div>
 
           <div id="settingsMainMenu" class="settings-menu-list">
-            <button class="settings-menu-item" data-target="settingsPersonal"><i class="fa-solid fa-user-gear"></i><span>Profil Spesifik Pengguna</span><i class="fa-solid fa-chevron-right chevron"></i></button>
-            <button class="settings-menu-item" data-target="settingsWallets"><i class="fa-solid fa-wallet"></i><span>Manajemen Entitas Akun</span><i class="fa-solid fa-chevron-right chevron"></i></button>
-            <button class="settings-menu-item" data-target="settingsParams"><i class="fa-solid fa-sliders"></i><span>Parameter Regulasi Sistem</span><i class="fa-solid fa-chevron-right chevron"></i></button>
-            <button class="settings-menu-item" data-target="settingsObligations"><i class="fa-solid fa-file-invoice-dollar"></i><span>Daftar Beban Wajib</span><i class="fa-solid fa-chevron-right chevron"></i></button>
-            <button class="settings-menu-item" data-target="settingsGuide"><i class="fa-solid fa-book"></i><span>Dokumentasi Operasional</span><i class="fa-solid fa-chevron-right chevron"></i></button>
-            <button class="settings-menu-item" data-target="settingsBackup"><i class="fa-solid fa-database"></i><span>Infrastruktur Data Lokal</span><i class="fa-solid fa-chevron-right chevron"></i></button>
+            <button class="settings-menu-item" data-target="settingsPersonal">
+              <i class="fa-solid fa-user-gear"></i><span>Profil Pengguna</span>
+              <i class="fa-solid fa-chevron-right chevron"></i>
+            </button>
+            <button class="settings-menu-item" data-target="settingsWallets">
+              <i class="fa-solid fa-wallet"></i><span>Kelola Dompet</span>
+              <i class="fa-solid fa-chevron-right chevron"></i>
+            </button>
+            <button class="settings-menu-item" data-target="settingsParams">
+              <i class="fa-solid fa-sliders"></i><span>Batas & Parameter</span>
+              <i class="fa-solid fa-chevron-right chevron"></i>
+            </button>
+            <button class="settings-menu-item" data-target="settingsObligations">
+              <i class="fa-solid fa-file-invoice-dollar"></i><span>Kewajiban Tetap</span>
+              <i class="fa-solid fa-chevron-right chevron"></i>
+            </button>
+            <button class="settings-menu-item" data-target="settingsGuide">
+              <i class="fa-solid fa-book"></i><span>Panduan Aplikasi</span>
+              <i class="fa-solid fa-chevron-right chevron"></i>
+            </button>
+            <button class="settings-menu-item" data-target="settingsAbout">
+              <i class="fa-solid fa-circle-info"></i><span>Tentang Aplikasi</span>
+              <i class="fa-solid fa-chevron-right chevron"></i>
+            </button>
+            <button class="settings-menu-item" data-target="settingsBackup">
+              <i class="fa-solid fa-database"></i><span>Backup & Keamanan Data</span>
+              <i class="fa-solid fa-chevron-right chevron"></i>
+            </button>
           </div>
 
           <div id="settingsSubMenuContainer" style="display:none;">
             <div class="settings-sub-header">
-              <button class="icon-btn" id="settingsBackBtn"><i class="fa-solid fa-arrow-left"></i></button>
+              <button class="icon-btn" id="settingsBackBtn">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
               <h3 id="settingsSubTitle" class="settings-sub-title"></h3>
             </div>
 
+            <!-- Sub: Profil -->
             <div id="settingsPersonal" class="settings-sub-page" style="display:none;">
               <div class="card card-flat">
                 <div class="settings-form">
-                  <div class="form-group"><label class="form-label">Identifikasi Nama Kredensial</label><input type="text" id="settingName" class="form-input" placeholder="Definisikan subjek legal"></div>
-                  <button class="btn-primary" id="savePersonalSettings"><i class="fa-solid fa-check"></i>Update Profil Registri</button>
+                  <div class="form-group">
+                    <label class="form-label">Nama</label>
+                    <input type="text" id="settingName" class="form-input"
+                      placeholder="Masukkan nama Anda">
+                  </div>
+                  <button class="btn-primary" id="savePersonalSettings">
+                    <i class="fa-solid fa-check"></i>Simpan Profil
+                  </button>
                 </div>
               </div>
             </div>
 
+            <!-- Sub: Kelola Dompet -->
             <div id="settingsWallets" class="settings-sub-page" style="display:none;">
               <div class="card card-flat">
                 <div class="settings-form">
                   <div id="walletsSettingsList"></div>
-                  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-                    <input type="text" id="newWalletName" class="form-input" placeholder="Label Akun" style="flex:1;min-width:120px">
-                    <select id="newWalletType" class="form-input" style="flex:0.6;min-width:100px"><option value="bank">Sektor Finansial Institusi</option><option value="cash">Aliran Kas Tunai</option><option value="ewallet">Dompet Virtual</option></select>
-                    <div class="amount-input-wrap" style="flex:0.8;min-width:100px"><span class="currency-prefix">Rp</span><input type="text" id="newWalletBalance" class="form-input amount-input" placeholder="Basis Saldo"></div>
-                    <button id="addWalletBtn" class="btn-primary btn-sm"><i class="fa-solid fa-plus"></i></button>
+                  <div class="add-wallet-form">
+                    <input type="text" id="newWalletName" class="form-input"
+                      placeholder="Nama dompet">
+                    <select id="newWalletType" class="form-input">
+                      <option value="bank">Bank</option>
+                      <option value="cash">Tunai</option>
+                      <option value="ewallet">Dompet Digital</option>
+                    </select>
+                    <div class="amount-input-wrap">
+                      <span class="currency-prefix">Rp</span>
+                      <input type="text" id="newWalletBalance" class="form-input amount-input"
+                        placeholder="Saldo awal">
+                    </div>
+                    <button id="addWalletBtn" class="btn-primary btn-sm">
+                      <i class="fa-solid fa-plus"></i>Tambah
+                    </button>
                   </div>
-                  <button class="btn-primary" id="saveWallets"><i class="fa-solid fa-floppy-disk"></i>Simpan Perubahan Skema Dompet</button>
+                  <button class="btn-primary" id="saveWallets">
+                    <i class="fa-solid fa-floppy-disk"></i>Simpan Perubahan
+                  </button>
                 </div>
               </div>
             </div>
 
+            <!-- Sub: Batas & Parameter -->
             <div id="settingsParams" class="settings-sub-page" style="display:none;">
               <div class="card card-flat">
                 <div class="settings-form">
-                  <div class="form-group"><label class="form-label">Toleransi Batas Pengeluaran Harian</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="settingDailyLimit" class="form-input amount-input" placeholder="0" inputmode="numeric"></div></div>
-                  <div class="form-row">
-                    <div class="form-group"><label class="form-label">Konfigurasi Hari Dasar</label><input type="number" id="settingTotalWorkdays" class="form-input" placeholder="22" min="1" max="31"></div>
-                    <div class="form-group"><label class="form-label">Sisa Waktu Pemrosesan Hari</label><input type="number" id="settingWorkdays" class="form-input" placeholder="15" min="0" max="31"></div>
+                  <div class="form-group">
+                    <label class="form-label">Batas Pengeluaran Harian</label>
+                    <div class="amount-input-wrap">
+                      <span class="currency-prefix">Rp</span>
+                      <input type="text" id="settingDailyLimit" class="form-input amount-input"
+                        placeholder="0" inputmode="numeric">
+                    </div>
                   </div>
-                  <div class="form-group"><label class="form-label">Parameter Khusus Modul Restriksi</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="settingTargetBni" class="form-input amount-input" placeholder="0" inputmode="numeric"></div></div>
-                  <button class="btn-primary" id="saveSystemSettings"><i class="fa-solid fa-gears"></i>Terapkan Konfigurasi Limit</button>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Total Hari Kerja</label>
+                      <input type="number" id="settingTotalWorkdays" class="form-input"
+                        placeholder="22" min="1" max="31">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Sisa Hari Kerja</label>
+                      <input type="number" id="settingWorkdays" class="form-input"
+                        placeholder="15" min="0" max="31">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Saldo Minimum Akun Bank</label>
+                    <div class="amount-input-wrap">
+                      <span class="currency-prefix">Rp</span>
+                      <input type="text" id="settingTargetBni" class="form-input amount-input"
+                        placeholder="0" inputmode="numeric">
+                    </div>
+                  </div>
+                  <button class="btn-primary" id="saveSystemSettings">
+                    <i class="fa-solid fa-gears"></i>Simpan Parameter
+                  </button>
                 </div>
               </div>
             </div>
 
+            <!-- Sub: Kewajiban Tetap -->
             <div id="settingsObligations" class="settings-sub-page" style="display:none;">
               <div class="card card-flat">
                 <div id="obligationsSettings" class="obligations-settings-list"></div>
                 <div class="add-obligation-form">
-                  <input type="text" id="newObligationName" class="form-input" placeholder="Identifikasi objek liabilitas">
-                  <div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="newObligationAmount" class="form-input amount-input" placeholder="0" inputmode="numeric"></div>
-                  <button class="btn-primary" id="addObligation"><i class="fa-solid fa-plus"></i></button>
+                  <input type="text" id="newObligationName" class="form-input"
+                    placeholder="Nama kewajiban (contoh: Cicilan motor)">
+                  <div class="amount-input-wrap">
+                    <span class="currency-prefix">Rp</span>
+                    <input type="text" id="newObligationAmount" class="form-input amount-input"
+                      placeholder="0" inputmode="numeric">
+                  </div>
+                  <button class="btn-primary" id="addObligation">
+                    <i class="fa-solid fa-plus"></i>Tambah
+                  </button>
                 </div>
               </div>
             </div>
 
+            <!-- Sub: Panduan Aplikasi -->
             <div id="settingsGuide" class="settings-sub-page" style="display:none;">
-              <div class="card card-flat guide-content">
-                <div class="card-section-title"><i class="fa-solid fa-book-open"></i>Instruksi Fungsional Terminal</div>
-                <p style="font-size:13px;line-height:1.6;color:var(--text-secondary);margin-bottom:12px;">Struktur ini mengimplementasikan pencatatan entri ganda berbasis sistem untuk menyajikan transparansi perputaran modal pribadi dengan presisi tinggi.</p>
-                <ul style="margin-left:20px;font-size:13px;color:var(--text-secondary);line-height:1.6;">
-                  <li style="margin-bottom:8px"><strong>Entitas Dompet Operasional:</strong> Gunakan fungsi konfigurasi untuk mendeklarasikan tiap blok kas. Fitur 'Transfer' menginisiasi mutasi tertutup tanpa mengubah status ekuitas agregat.</li>
-                  <li style="margin-bottom:8px"><strong>Restriksi Hari Aktif:</strong> Tentukan jumlah basis perhitungan (hari). Sistem secara terpusat menyinkronkan batas batas keamanan dana berdasar matriks inputan.</li>
-                  <li style="margin-bottom:8px"><strong>Liabilitas Dasar Periodik:</strong> Masukkan item wajib di awal siklus. Penyelesaian tagihan langsung divalidasi dari tampilan Dasbor utama untuk membebaskan sisa ekuivalen dana kas.</li>
-                  <li style="margin-bottom:8px"><strong>Restorasi Siklus Awal:</strong> Jalankan opsi pengaturan ulang ('Inisiasi Bulan Baru') hanya saat masa penutup siklus tiba. Hal ini membalikkan seluruh tanda konfirmasi tanpa merusak buku besar rekaman entri permanen.</li>
+              <div class="guide-content">
+
+                <div class="card card-flat mb-16">
+                  <div class="card-section-title"><i class="fa-solid fa-rocket"></i>Cara Memulai</div>
+                  <ol class="guide-list">
+                    <li>Buka <strong>Pengaturan → Kelola Dompet</strong> dan tambahkan dompet pertama Anda (misalnya: BCA, Tunai, GoPay). Masukkan saldo saat ini untuk setiap dompet.</li>
+                    <li>Kembali ke <strong>Pengaturan → Batas &amp; Parameter</strong>, atur batas pengeluaran harian dan jumlah hari kerja tersisa bulan ini. Ini digunakan untuk menghitung "Dana Tersedia" di dasbor.</li>
+                    <li>Tambahkan kewajiban rutin seperti cicilan atau sewa di <strong>Pengaturan → Kewajiban Tetap</strong>. Nilai ini akan dikurangi dari dana tersedia secara otomatis.</li>
+                    <li>Mulai mencatat transaksi melalui tombol <strong>Tambah</strong> di dasbor atau melalui halaman <strong>Catat Transaksi</strong>.</li>
+                  </ol>
+                </div>
+
+                <div class="card card-flat mb-16">
+                  <div class="card-section-title"><i class="fa-solid fa-wallet"></i>Fitur Dompet</div>
+                  <ul class="guide-list">
+                    <li><strong>Dompet Bank:</strong> Jika ada saldo minimum yang harus dipertahankan (misalnya Rp50.000 BNI), atur di kolom "Saldo Minimum Akun Bank". Dana di bawah batas ini tidak akan dihitung sebagai dana tersedia.</li>
+                    <li><strong>Transfer:</strong> Gunakan jenis transaksi "Transfer" untuk memindahkan uang antar dompet. Total saldo tidak akan berubah.</li>
+                    <li><strong>Nama & Sinonim:</strong> Anda bisa menggunakan fitur input cepat (ikon keyboard di pojok bawah) dan menyebut nama dompet secara natural, misalnya "bayar 50rb dari gopay".</li>
+                  </ul>
+                </div>
+
+                <div class="card card-flat mb-16">
+                  <div class="card-section-title"><i class="fa-solid fa-chart-pie"></i>Dana Tersedia (DuitFree)</div>
+                  <p class="guide-text">Dana Tersedia adalah sisa uang yang benar-benar bisa digunakan, dihitung dari:</p>
+                  <div class="guide-formula">
+                    <div class="formula-row">
+                      <span>Total Saldo Semua Dompet</span>
+                      <span class="plus">+</span>
+                    </div>
+                    <div class="formula-row">
+                      <span>dikurangi Batas Pengeluaran × Sisa Hari Kerja</span>
+                      <span class="minus">−</span>
+                    </div>
+                    <div class="formula-row">
+                      <span>dikurangi Total Kewajiban Belum Dibayar</span>
+                      <span class="minus">−</span>
+                    </div>
+                    <div class="formula-row result">
+                      <span>= Dana Tersedia</span>
+                    </div>
+                  </div>
+                  <p class="guide-text">Jika hasilnya negatif (merah), artinya pengeluaran yang direncanakan melebihi saldo yang dimiliki.</p>
+                </div>
+
+                <div class="card card-flat mb-16">
+                  <div class="card-section-title"><i class="fa-solid fa-keyboard"></i>Input Cepat via Teks</div>
+                  <p class="guide-text">Klik ikon keyboard di pojok kanan bawah untuk membuka panel input cepat. Ketik transaksi secara natural:</p>
+                  <div class="guide-examples">
+                    <div class="example-item">
+                      <span class="example-input">"bayar listrik 250rb dari bca"</span>
+                      <span class="example-result">→ Pengeluaran Rp250.000 dari BCA</span>
+                    </div>
+                    <div class="example-item">
+                      <span class="example-input">"terima gaji 5jt ke bca"</span>
+                      <span class="example-result">→ Pemasukan Rp5.000.000 ke BCA</span>
+                    </div>
+                    <div class="example-item">
+                      <span class="example-input">"transfer 100k dari gopay ke bca"</span>
+                      <span class="example-result">→ Transfer Rp100.000</span>
+                    </div>
+                  </div>
+                  <p class="guide-text">Format angka yang didukung: <strong>50000</strong>, <strong>50k</strong>, <strong>50rb</strong>. Jika aplikasi tidak yakin dengan transaksinya, akan muncul konfirmasi sebelum disimpan.</p>
+                </div>
+
+                <div class="card card-flat mb-16">
+                  <div class="card-section-title"><i class="fa-solid fa-rotate"></i>Tagihan Rutin</div>
+                  <p class="guide-text">Daftarkan tagihan yang dibayar setiap bulan (Spotify, listrik, dll.) di halaman <strong>Tagihan Rutin</strong>. Saat jatuh tempo, tagihan akan muncul di dasbor dengan tombol centang untuk langsung mencatatnya ke transaksi.</p>
+                </div>
+
+                <div class="card card-flat mb-16">
+                  <div class="card-section-title"><i class="fa-solid fa-flag-checkered"></i>Target Tabungan</div>
+                  <p class="guide-text">Buat target keuangan seperti "Dana Darurat" atau "Liburan ke Jepang" di halaman <strong>Target Tabungan</strong>. Anda bisa menambah dana ke target kapan saja dengan mengisi nominal dan klik tombol <strong>+</strong>. Progress akan ditampilkan di dasbor.</p>
+                </div>
+
+                <div class="card card-flat mb-16">
+                  <div class="card-section-title"><i class="fa-solid fa-microchip"></i>Analisis AI</div>
+                  <p class="guide-text">Halaman <strong>Analisis AI</strong> menggunakan kecerdasan buatan untuk menganalisis data keuangan Anda. Pilih salah satu kartu analisis atau ketik pertanyaan sendiri. Koneksi internet diperlukan. Data yang dikirim hanya berupa ringkasan angka, bukan informasi pribadi.</p>
+                </div>
+
+                <div class="card card-flat mb-16">
+                  <div class="card-section-title"><i class="fa-solid fa-forward-step"></i>Reset Awal Bulan</div>
+                  <p class="guide-text">Di awal setiap bulan, buka <strong>Pengaturan → Backup &amp; Keamanan Data</strong> dan tekan <strong>Reset Awal Bulan</strong>. Tindakan ini akan:</p>
+                  <ul class="guide-list">
+                    <li>Mengatur ulang status semua kewajiban menjadi "belum dibayar"</li>
+                    <li>Mengembalikan jumlah sisa hari kerja ke nilai awal</li>
+                    <li>Tidak menghapus riwayat transaksi</li>
+                  </ul>
+                </div>
+
+                <div class="card card-flat mb-16">
+                  <div class="card-section-title"><i class="fa-solid fa-star"></i>Skor Keuangan</div>
+                  <p class="guide-text">Skor 0–100 yang menunjukkan kesehatan keuangan bulan ini, dihitung dari 4 komponen:</p>
+                  <ul class="guide-list">
+                    <li><strong>Retensi Dana (maks. 30):</strong> Persentase pemasukan yang berhasil ditabung.</li>
+                    <li><strong>Disiplin Anggaran (maks. 25):</strong> Seberapa jauh Anda mematuhi batas anggaran per kategori.</li>
+                    <li><strong>Konsistensi Pencatatan (maks. 20):</strong> Seberapa rutin Anda mencatat transaksi setiap hari.</li>
+                    <li><strong>Keamanan Dana (maks. 25):</strong> Rasio dana tersedia terhadap total kewajiban.</li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Sub: Tentang Aplikasi -->
+            <div id="settingsAbout" class="settings-sub-page" style="display:none;">
+              <div class="card card-flat mb-16">
+                <div class="about-app-header">
+                  <div class="about-logo"><i class="fa-solid fa-wallet"></i></div>
+                  <div>
+                    <h3 class="about-app-name">MyWallet</h3>
+                    <p class="about-app-version">Versi 4.0 — Penyimpanan Lokal</p>
+                  </div>
+                </div>
+                <p class="guide-text">MyWallet adalah aplikasi manajemen keuangan pribadi yang berjalan sepenuhnya di perangkat Anda. Tidak ada data yang diunggah ke server kecuali saat menggunakan fitur Analisis AI.</p>
+              </div>
+              <div class="card card-flat mb-16">
+                <div class="card-section-title"><i class="fa-solid fa-mobile-screen"></i>Pasang ke Layar Utama</div>
+                <p class="guide-text">Anda dapat memasang MyWallet ke layar utama ponsel agar dapat dibuka seperti aplikasi biasa, tanpa perlu membuka browser terlebih dahulu.</p>
+                <button class="btn-primary" id="pwaInstallBtnSettings" style="margin-top:12px">
+                  <i class="fa-solid fa-download"></i>Pasang ke Layar Utama
+                </button>
+                <p id="pwaInstallStatus" class="guide-text" style="margin-top:8px;color:var(--text-muted);display:none"></p>
+              </div>
+              <div class="card card-flat mb-16">
+                <div class="card-section-title"><i class="fa-solid fa-shield-halved"></i>Privasi & Data</div>
+                <ul class="guide-list">
+                  <li>Semua data tersimpan di memori browser perangkat Anda (localStorage).</li>
+                  <li>Data tidak pernah dikirim ke server tanpa sepengetahuan Anda.</li>
+                  <li>Gunakan fitur ekspor untuk membuat salinan cadangan data.</li>
+                  <li>Menghapus data browser/cache akan menghapus semua data aplikasi.</li>
                 </ul>
               </div>
             </div>
 
+            <!-- Sub: Backup & Data -->
             <div id="settingsBackup" class="settings-sub-page" style="display:none;">
               <div class="card card-flat mb-16">
-                <div class="card-section-title"><i class="fa-solid fa-bell"></i>Pengaturan Sinyal Peringatan</div>
+                <div class="card-section-title"><i class="fa-solid fa-bell"></i>Notifikasi</div>
                 <div class="settings-form">
-                  <button class="btn-secondary" id="enableNotifBtn"><i class="fa-solid fa-toggle-on"></i>Aktivasi Izin Interupsi Desktop</button>
-                  <p id="notifStatusText" style="font-size:12px;color:var(--text-muted);margin-top:4px"></p>
+                  <button class="btn-secondary" id="enableNotifBtn">
+                    <i class="fa-solid fa-toggle-on"></i>Aktifkan Notifikasi
+                  </button>
+                  <p id="notifStatusText"
+                    style="font-size:12px;color:var(--text-muted);margin-top:4px"></p>
                 </div>
               </div>
               <div class="card card-flat mb-16">
-                <div class="card-section-title"><i class="fa-solid fa-database"></i>Manajemen Integritas Log Server</div>
+                <div class="card-section-title"><i class="fa-solid fa-database"></i>Backup Data</div>
                 <div class="backup-restore-row">
-                  <button class="btn-secondary" id="exportData"><i class="fa-solid fa-download"></i>Tarik Backup JSON</button>
-                  <button class="btn-secondary" id="importDataBtn"><i class="fa-solid fa-upload"></i>Tanam Backup Lokal</button>
+                  <button class="btn-secondary" id="exportData">
+                    <i class="fa-solid fa-download"></i>Ekspor Data (JSON)
+                  </button>
+                  <button class="btn-secondary" id="importDataBtn">
+                    <i class="fa-solid fa-upload"></i>Impor Data
+                  </button>
                   <input type="file" id="importDataInput" accept=".json" style="display:none">
                 </div>
               </div>
               <div class="card card-flat card-warning mb-16">
-                <div class="card-section-title"><i class="fa-solid fa-rotate-left"></i>Perintah Transisi Periode</div>
-                <p class="warning-text">Tindakan pengubahan indeks awal. Algoritma akan membersihkan status tagihan lunas menjadi aktif, mengatur ulang kuota hitung mundur kalender aktif, dan melanjutkan perhitungan baru tanpa kehilangan data terlampau.</p>
-                <button class="btn-secondary" id="resetMonth"><i class="fa-solid fa-forward-step"></i>Proses Migrasi Buku Baru</button>
+                <div class="card-section-title"><i class="fa-solid fa-rotate-left"></i>Reset Awal Bulan</div>
+                <p class="warning-text">Mengatur ulang status kewajiban dan sisa hari kerja. Riwayat transaksi tetap tersimpan.</p>
+                <button class="btn-secondary" id="resetMonth">
+                  <i class="fa-solid fa-forward-step"></i>Reset Awal Bulan
+                </button>
               </div>
               <div class="card card-flat" style="border-color:var(--red-dim)">
-                <div class="card-section-title" style="color:var(--red)"><i class="fa-solid fa-triangle-exclamation"></i>Penghancuran Sektor Memori</div>
-                <p class="warning-text" style="color:var(--text-secondary)">Peringatan keras: Mengakibatkan format nol mutlak pada semua parameter yang tersimpan dalam repositori cache klien browser. Aksi dilarang tanpa proses ekspor terlebih dahulu.</p>
-                <button class="btn-danger-outline" id="clearAllData" style="width:100%;justify-content:center"><i class="fa-solid fa-skull-crossbones"></i>Jalankan Eksekusi Pembersihan Terminal</button>
+                <div class="card-section-title" style="color:var(--red)">
+                  <i class="fa-solid fa-triangle-exclamation"></i>Hapus Semua Data
+                </div>
+                <p class="warning-text">Tindakan ini akan menghapus semua data secara permanen. Pastikan sudah melakukan ekspor terlebih dahulu.</p>
+                <button class="btn-danger-outline" id="clearAllData" style="width:100%;justify-content:center">
+                  <i class="fa-solid fa-skull-crossbones"></i>Hapus Semua Data
+                </button>
               </div>
             </div>
-          </div>
 
+          </div>
         </div>
       </div>
+
     </main>
 
+    <!-- Bottom Navigation Mobile -->
     <nav id="bottom-nav">
-      <a href="#" class="bottom-nav-item active" data-page="dashboard"><i class="fa-solid fa-border-all"></i><span>Dasbor</span></a>
-      <a href="#" class="bottom-nav-item" data-page="transactions"><i class="fa-solid fa-pen-to-square"></i><span>Input</span></a>
-      <a href="#" class="bottom-nav-item" data-page="history"><i class="fa-solid fa-folder-open"></i><span>Data</span></a>
-      <a href="#" class="bottom-nav-item" data-page="goals"><i class="fa-solid fa-bullseye"></i><span>Target</span></a>
-      <a href="#" class="bottom-nav-item" data-page="settings"><i class="fa-solid fa-gear"></i><span>Sistem</span></a>
+      <a href="#" class="bottom-nav-item active" data-page="dashboard">
+        <i class="fa-solid fa-border-all"></i><span>Dasbor</span>
+      </a>
+      <a href="#" class="bottom-nav-item" data-page="transactions">
+        <i class="fa-solid fa-pen-to-square"></i><span>Catat</span>
+      </a>
+      <a href="#" class="bottom-nav-item" data-page="history">
+        <i class="fa-solid fa-folder-open"></i><span>Riwayat</span>
+      </a>
+      <a href="#" class="bottom-nav-item" data-page="goals">
+        <i class="fa-solid fa-bullseye"></i><span>Target</span>
+      </a>
+      <a href="#" class="bottom-nav-item" data-page="settings">
+        <i class="fa-solid fa-gear"></i><span>Atur</span>
+      </a>
     </nav>
   </div>
 
+  <!-- Chat Widget -->
   <div id="chatWidget">
     <div id="chatBox" class="chat-box" style="display:none">
       <div class="chat-header">
-        <span><i class="fa-solid fa-terminal" style="margin-right:8px"></i>Interface Teks Bawah</span>
+        <span><i class="fa-solid fa-keyboard" style="margin-right:8px"></i>Input Cepat</span>
         <button id="chatClose" class="chat-close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div id="chatLog" class="chat-log"></div>
       <div class="chat-footer">
         <div class="chat-date-row">
-          <input type="date" id="chatDate" class="chat-date-input">
-          <button class="btn-secondary btn-sm" id="chatDateBtn">Konfirmasi Waktu</button>
+          <div class="chat-date-wrap">
+            <label class="chat-date-label">Tanggal Transaksi</label>
+            <input type="date" id="chatDate" class="chat-date-input" placeholder="Pilih tanggal">
+          </div>
+          <button class="btn-secondary btn-sm" id="chatDateBtn">Terapkan</button>
         </div>
         <div class="chat-input-row">
-          <input id="chatInput" class="chat-input" placeholder="Parsing direktori teks...">
-          <button id="chatSend" class="btn-primary btn-sm"><i class="fa-solid fa-arrow-turn-down fa-rotate-90"></i></button>
+          <input id="chatInput" class="chat-input"
+            placeholder="contoh: bayar makan 35rb dari gopay">
+          <button id="chatSend" class="btn-primary btn-sm">
+            <i class="fa-solid fa-arrow-turn-down fa-rotate-90"></i>
+          </button>
         </div>
       </div>
     </div>
-    <button id="chatToggle" class="chat-toggle-btn">
+    <button id="chatToggle" class="chat-toggle-btn" aria-label="Input cepat">
       <i class="fa-solid fa-keyboard"></i>
     </button>
   </div>
 
+  <!-- Modal: Tambah Transaksi (dari dasbor) -->
   <div id="transactionModal" class="modal-overlay" style="display:none">
     <div class="modal-box">
-      <div class="modal-header"><h3 class="modal-title">Konfigurasi Entri Utama</h3><button class="icon-btn modal-close" id="closeModal"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="modal-header">
+        <h3 class="modal-title">Tambah Transaksi</h3>
+        <button class="icon-btn modal-close" id="closeModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
       <div class="modal-body">
         <div class="transaction-type-tabs modal-tabs">
-          <button class="type-tab active" data-type="expense" data-context="modal">Arus Keluar</button>
-          <button class="type-tab" data-type="income" data-context="modal">Arus Masuk</button>
-          <button class="type-tab" data-type="transfer" data-context="modal">Mutasi Internal</button>
+          <button class="type-tab active" data-type="expense" data-context="modal">Pengeluaran</button>
+          <button class="type-tab" data-type="income" data-context="modal">Pemasukan</button>
+          <button class="type-tab" data-type="transfer" data-context="modal">Transfer</button>
         </div>
         <form id="modalTransactionForm">
-          <div class="form-group"><label class="form-label">Basis Validasi Nilai (Nominal)</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="modalTxAmount" class="form-input amount-input" placeholder="0" inputmode="numeric" required></div></div>
-          <div class="form-row">
-            <div class="form-group"><label class="form-label">Penetapan Waktu Mutasi</label><input type="date" id="modalTxDate" class="form-input" required></div>
-            <div class="form-group"><label class="form-label" id="modalSourceLabel">Titik Akun Pangkal</label><select id="modalTxSourceWallet" class="form-input"></select></div>
+          <div class="form-group">
+            <label class="form-label">Jumlah</label>
+            <div class="amount-input-wrap">
+              <span class="currency-prefix">Rp</span>
+              <input type="text" id="modalTxAmount" class="form-input amount-input"
+                placeholder="0" inputmode="numeric" required>
+            </div>
           </div>
-          <div class="form-group" id="modalDestGroup" style="display:none"><label class="form-label">Pusat Akun Destinasi</label><select id="modalTxDestWallet" class="form-input"></select></div>
-          <div class="form-group" id="modalCategoryGroup"><label class="form-label">Model Hierarki Kategori</label><div class="category-grid" id="modalCategoryGrid"></div></div>
-          <div class="form-group"><label class="form-label">Rincian Data Subjektif</label><input type="text" id="modalTxNote" class="form-input" placeholder="Lampiran teks referensi"></div>
-          <button type="submit" class="btn-primary btn-full"><i class="fa-solid fa-database"></i>Simpan Perintah Eksekusi</button>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tanggal</label>
+              <input type="date" id="modalTxDate" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="modalSourceLabel">Dompet</label>
+              <select id="modalTxSourceWallet" class="form-input"></select>
+            </div>
+          </div>
+          <div class="form-group" id="modalDestGroup" style="display:none">
+            <label class="form-label">Dompet Tujuan</label>
+            <select id="modalTxDestWallet" class="form-input"></select>
+          </div>
+          <div class="form-group" id="modalCategoryGroup">
+            <label class="form-label">Kategori</label>
+            <div class="category-grid" id="modalCategoryGrid"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Keterangan</label>
+            <input type="text" id="modalTxNote" class="form-input" placeholder="Catatan opsional">
+          </div>
+          <button type="submit" class="btn-primary btn-full">
+            <i class="fa-solid fa-database"></i>Simpan
+          </button>
         </form>
       </div>
     </div>
   </div>
 
+  <!-- Modal: Edit Transaksi -->
   <div id="editModal" class="modal-overlay" style="display:none">
     <div class="modal-box">
-      <div class="modal-header"><h3 class="modal-title">Akses Modifikasi Entri</h3><button class="icon-btn modal-close" id="closeEditModal"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Transaksi</h3>
+        <button class="icon-btn modal-close" id="closeEditModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
       <div class="modal-body">
         <form id="editTransactionForm">
           <input type="hidden" id="editTxId">
-          <div class="form-group"><label class="form-label">Sintaks Angka Terkoreksi</label><div class="amount-input-wrap"><span class="currency-prefix">Rp</span><input type="text" id="editTxAmount" class="form-input amount-input" placeholder="0" inputmode="numeric" required></div></div>
-          <div class="form-row">
-            <div class="form-group"><label class="form-label">Sintaks Tanggal Terkoreksi</label><input type="date" id="editTxDate" class="form-input" required></div>
-            <div class="form-group"><label class="form-label">Identifikasi Node Akun</label><select id="editTxWallet" class="form-input"></select></div>
+          <div class="form-group">
+            <label class="form-label">Jumlah</label>
+            <div class="amount-input-wrap">
+              <span class="currency-prefix">Rp</span>
+              <input type="text" id="editTxAmount" class="form-input amount-input"
+                placeholder="0" inputmode="numeric" required>
+            </div>
           </div>
-          <div class="form-group"><label class="form-label">Pembaruan Catatan</label><input type="text" id="editTxNote" class="form-input" placeholder="Log revisi opsional"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tanggal</label>
+              <input type="date" id="editTxDate" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dompet</label>
+              <select id="editTxWallet" class="form-input"></select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Keterangan</label>
+            <input type="text" id="editTxNote" class="form-input"
+              placeholder="Perbarui catatan">
+          </div>
           <div class="edit-action-row">
-            <button type="button" class="btn-danger-outline" id="deleteTransaction"><i class="fa-solid fa-trash-can"></i>Hapus Indeks Item</button>
-            <button type="submit" class="btn-primary"><i class="fa-solid fa-pen"></i>Verifikasi Pembaruan</button>
+            <button type="button" class="btn-danger-outline" id="deleteTransaction">
+              <i class="fa-solid fa-trash-can"></i>Hapus
+            </button>
+            <button type="submit" class="btn-primary">
+              <i class="fa-solid fa-pen"></i>Simpan Perubahan
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
+  <!-- Modal: Favorit/Template -->
   <div id="templateModal" class="modal-overlay" style="display:none">
     <div class="modal-box">
-      <div class="modal-header"><h3 class="modal-title">Repositori Cepat</h3><button class="icon-btn" id="closeTemplateModal"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="modal-header">
+        <h3 class="modal-title">Transaksi Favorit</h3>
+        <button class="icon-btn" id="closeTemplateModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
       <div class="modal-body"><div id="templateList"></div></div>
     </div>
   </div>
 
+  <!-- Modal: Onboarding -->
   <div id="onboardingModal" class="modal-overlay" style="display:none">
     <div class="modal-box onboard">
-      <div class="modal-header"><h3 class="modal-title">Struktur Fundamental Akun</h3><button class="icon-btn" onclick="hideModal('onboardingModal')"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="modal-header">
+        <h3 class="modal-title">Selamat Datang di MyWallet</h3>
+        <button class="icon-btn" onclick="hideModal('onboardingModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
       <div class="modal-body" id="onboardingBody"></div>
     </div>
   </div>
 
+  <!-- Modal: Konfirmasi -->
   <div id="confirmModal" class="modal-overlay" style="display:none">
     <div class="modal-box modal-box-sm">
-      <div class="modal-header"><h3 class="modal-title" id="confirmTitle">Lapisan Otorisasi Akhir</h3><button class="icon-btn" id="closeConfirmModal"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="modal-header">
+        <h3 class="modal-title" id="confirmTitle">Konfirmasi</h3>
+        <button class="icon-btn" id="closeConfirmModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
       <div class="modal-body">
         <p id="confirmMessage" class="confirm-message"></p>
-        <div class="confirm-actions"><button class="btn-secondary" id="confirmCancel">Batalkan Sekuens</button><button class="btn-danger" id="confirmOk">Lanjutkan Paksa</button></div>
+        <div class="confirm-actions">
+          <button class="btn-secondary" id="confirmCancel">Batal</button>
+          <button class="btn-danger" id="confirmOk">Ya, Lanjutkan</button>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Toast Container -->
   <div id="toastContainer" class="toast-container"></div>
-  <div id="pdfReportContainer" style="position:fixed;left:-9999px;top:0;width:800px;background:white;color:#111;font-family:Arial,sans-serif;padding:40px;z-index:-1"></div>
+
+  <!-- PDF Report Container (hidden) -->
+  <div id="pdfReportContainer"
+    style="position:fixed;left:-9999px;top:0;width:800px;background:white;color:#111;
+    font-family:Arial,sans-serif;padding:40px;z-index:-1">
+  </div>
 
   <script src="app.js"></script>
 </body>
