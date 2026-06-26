@@ -1828,7 +1828,7 @@ function updateThemeUI(theme) {
   const isDark = theme === 'dark';
   document.querySelectorAll('#themeIconSidebar, #themeIconTop').forEach(i => { i.className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun'; });
   const txt = document.getElementById('themeTextSidebar');
-  if (txt) txt.textContent = isDark ? 'Profil Kontras Gelap' : 'Profil Kontras Terang';
+  if (txt) txt.textContent = isDark ? '' : '';
 }
 
 function setCurrentDate() {
